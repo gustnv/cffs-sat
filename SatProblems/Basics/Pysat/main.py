@@ -24,5 +24,4 @@ if s.solve():
 else:
     print("UNSAT")
 
-
 s.delete()
