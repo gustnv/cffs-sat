@@ -2,11 +2,10 @@ from pysat.solvers import Solver
 
 
 class SudokuSolver:
-    def __init__(self, initial_sudoku):
-        self.sudoku = initial_sudoku
-        self.clauses = []
+    def __init__(self, sudoku):
         self.solver = Solver()
-        self._initialize_clauses()
+        self.sudoku = sudoku
+        self._update_particular_clauses()
 
     def _rank(self, i, j, d):
         return i * 81 + j * 9 + d
@@ -14,21 +13,10 @@ class SudokuSolver:
     def _unrank(self, x):
         return (x - 1) // 81, ((x - 1) % 81) // 9, ((x - 1) % 9) + 1
 
-    def _add_cell_constraints(self):
-        # Each cell:
-        for i in range(9):
-            for j in range(9):
-                # Contains at least one digit
-                self.clauses.append([self._rank(i, j, d)
-                                    for d in range(1, 10)])
+    def _create_commom_clauses(self):
+        self.clauses = []
 
-                # Contains at most one digit
-                for d1 in range(1, 10):
-                    for d2 in range(d1 + 1, 10):
-                        self.clauses.append(
-                            [-self._rank(i, j, d1), -self._rank(i, j, d2)])
-
-    def _add_distinct_constraints(self):
+        # Ensures that a given set of cells(tuple list) contains distinct values
         def rule(cells):
             for i, c1 in enumerate(cells):
                 for j, c2 in enumerate(cells):
@@ -37,30 +25,49 @@ class SudokuSolver:
                             self.clauses.append(
                                 [-self._rank(c1[0], c1[1], d), -self._rank(c2[0], c2[1], d)])
 
-        # Garantir que linhas, colunas e subgrade 3x3 tenham valores distintos
+        # Ensure rows have distinct values
         for i in range(9):
-            rule([(i, j) for j in range(9)])  # Linhas
-            rule([(j, i) for j in range(9)])  # Colunas
+            rule([(i, j) for j in range(9)])
 
+        # Ensure columns have distinct values
+        for j in range(9):
+            rule([(i, j) for i in range(9)])
+
+        # Ensure 3x3 sub-grids have distinct values
         for i in 0, 3, 6:
             for j in 0, 3, 6:
                 rule([(i + k % 3, j + k // 3)
                      for k in range(9)])  # Subgrades 3x3
 
-    def _add_initial_conditions(self):
+        # Each cell:
+        for i in range(9):
+            for j in range(9):
+                # Contains at least one digit
+                self.clauses.append([self._rank(i, j, d)
+                                     for d in range(1, 10)])
+
+                # Contains at most one digit
+                for d1 in range(1, 10):
+                    for d2 in range(d1 + 1, 10):
+                        self.clauses.append(
+                            [-self._rank(i, j, d1), -self._rank(i, j, d2)])
+
+        assert len(self.clauses) == 81 * (1 + 36) + 27 * 324
+
+    def _update_particular_clauses(self):
+        self._create_commom_clauses()
+
+        # Initial condition
         for i in range(9):
             for j in range(9):
                 d = self.sudoku[i][j]
                 if d:
                     self.clauses.append([self._rank(i, j, d)])
 
-    def _initialize_clauses(self):
-        self._add_cell_constraints()
-        self._add_distinct_constraints()
-        self._add_initial_conditions()
+    def solve(self):
+        self.solver.clear_interrupt()
         self.solver.append_formula(self.clauses)
 
-    def solve(self):
         if self.solver.solve():
             print("[SAT]")
 
