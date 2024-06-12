@@ -12,7 +12,7 @@ cnf = [
 s = Solver(bootstrap_with=cnf[1:])
 
 if s.solve():
-    print(s.get_model()) 
+    print(s.get_model())
 else:
     print("UNSAT")
 

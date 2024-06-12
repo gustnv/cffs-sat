@@ -11,7 +11,7 @@ from pysat.solvers import *
 
 
 def _FindParallel(name, lock, solution, solutionExists, clauses):
-    solver = Solver(name = name, bootstrap_with = clauses)
+    solver = Solver(name=name, bootstrap_with=clauses)
     sol = None
     clauses = None
     sol = solver.solve()
@@ -32,6 +32,7 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
     finally:
         lock.release()
 
+
 class CFFSATSolver:
     def __init__(self):
         self.delta = 2
@@ -44,7 +45,9 @@ class CFFSATSolver:
         self.solutionExists = Value('d', 0.0)
         self.solution = Array('i', [])
         self.processes = []
-        self.defaultSolverNames = ['glucose4', 'glucose3', 'maplechrono', 'maplecm', 'maplesat', 'cadical', 'lingeling'] # 'minisat22', 'minisat-gh' and 'minicard' seem to fail/crash while solving on some values. For example delta = 2, colors = 7 and sets = 8
+        # 'minisat22', 'minisat-gh' and 'minicard' seem to fail/crash while solving on some values. For example delta = 2, colors = 7 and sets = 8
+        self.defaultSolverNames = [
+            'glucose4', 'glucose3', 'maplechrono', 'maplecm', 'maplesat', 'cadical', 'lingeling']
         self.outofmemory = False
         self.outofmemorySingleSolver = False
         self.singleSolverName = 'glucose4'
@@ -72,7 +75,8 @@ class CFFSATSolver:
                     self.clauses.append([matrix[row][column], -i])
                     for coveringRow in coveringRows:
                         if not self.ordered or coveringRow < row:
-                            self.clauses.append([-matrix[coveringRow][column], -i])
+                            self.clauses.append(
+                                [-matrix[coveringRow][column], -i])
                     i += 1
                 self.clauses.append(variables)
 
@@ -81,11 +85,11 @@ class CFFSATSolver:
         current = []
         if self.solutionExists.value == 1.0:
             for row in self.solution[0:self.sets*self.colors]:
-                if row > 0 and row%self.colors == 0:
+                if row > 0 and row % self.colors == 0:
                     current.append(self.colors)
                 elif row > 0:
-                    current.append(row%self.colors)
-                if row%self.colors == 0:
+                    current.append(row % self.colors)
+                if row % self.colors == 0:
                     sets.append(current)
                     current = []
             sets = sorted(sets, key=lambda x: sum(x))
@@ -112,11 +116,11 @@ class CFFSATSolver:
         current = []
         if self.solutionExists.value == 1.0:
             for row in self.solution[0:self.sets*self.colors]:
-                if row > 0 and row%self.colors == 0:
+                if row > 0 and row % self.colors == 0:
                     current.append(self.colors)
                 elif row > 0:
-                    current.append(row%self.colors)
-                if row%self.colors == 0:
+                    current.append(row % self.colors)
+                if row % self.colors == 0:
                     sets.append(current)
                     current = []
             sets = sorted(sets, key=lambda x: sum(x))
@@ -130,10 +134,11 @@ class CFFSATSolver:
         except FileNotFoundError:
             data = []
 
-        objInData = [obj for obj in data if obj['delta'] == self.delta and obj['colors'] == self.colors and obj['sets'] == self.sets]
+        objInData = [obj for obj in data if obj['delta'] ==
+                     self.delta and obj['colors'] == self.colors and obj['sets'] == self.sets]
 
         if len(objInData) == 0:
-            newdata =  {
+            newdata = {
                 'delta': self.delta,
                 'colors': self.colors,
                 'sets': self.sets
@@ -184,14 +189,17 @@ class CFFSATSolver:
                 data = json.load(jsonFile)
         except FileNotFoundError:
             data = []
-        objInData = [obj for obj in data if obj['delta'] == self.delta and obj['colors'] == self.colors and obj['sets'] == self.sets]
+        objInData = [obj for obj in data if obj['delta'] ==
+                     self.delta and obj['colors'] == self.colors and obj['sets'] == self.sets]
         if len(objInData) != 0 and isinstance(objInData[0]['solution'], list) and len(objInData[0]['solution']) != 0:
-            print('Delta:', self.delta, 'Colors:', self.colors, 'Sets:', self.sets)
+            print('Delta:', self.delta, 'Colors:',
+                  self.colors, 'Sets:', self.sets)
             print('Solution already in json\n')
             self.solutionExists.value = 1.0
             return True
         elif len(objInData) != 0 and objInData[0]['solution'] == 'UNSAT':
-            print('Delta:', self.delta, 'Colors:', self.colors, 'Sets:', self.sets)
+            print('Delta:', self.delta, 'Colors:',
+                  self.colors, 'Sets:', self.sets)
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
@@ -228,7 +236,8 @@ class CFFSATSolver:
         self.solutionExists.value = 0.0
         self.solution = Array('i', [0] * self.sets * self.colors)
         self.processes = []
-        p = Process(target = _FindParallel, args = (self.singleSolverName, self.lock, self.solution, self.solutionExists, self.clauses))
+        p = Process(target=_FindParallel, args=(self.singleSolverName,
+                    self.lock, self.solution, self.solutionExists, self.clauses))
         self.processes.append(p)
         p.start()
         self.clauses = []
@@ -241,11 +250,13 @@ class CFFSATSolver:
         self.CreateClauses()
         self.solutionExists.value = 0.0
         self.solution = Array('i', [0] * self.sets * self.colors)
-        print('Delta:', self.delta, 'Colors:', self.colors, 'Sets:', self.sets, 'len(clauses):', len(self.clauses), 'Ordered:', self.ordered)
+        print('Delta:', self.delta, 'Colors:', self.colors, 'Sets:', self.sets,
+              'len(clauses):', len(self.clauses), 'Ordered:', self.ordered)
         self.processes = []
 
         for name in self.solverNames:
-            p = Process(target = _FindParallel, args = (name, self.lock, self.solution, self.solutionExists, self.clauses))
+            p = Process(target=_FindParallel, args=(name, self.lock,
+                        self.solution, self.solutionExists, self.clauses))
             self.processes.append(p)
             p.start()
             if psutil.virtual_memory()[2] > 90.0:
@@ -299,8 +310,9 @@ class CFFSATSolver:
                 self.colors += 1
                 self.sets = self.colors
 
+
 if __name__ == '__main__':
     solver = CFFSATSolver()
     solver.timeout = 60 * 60
     solver.ordered = True
-    solver.FindOne(delta = 2)
+    solver.FindOne(delta=2)
