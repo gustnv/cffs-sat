@@ -7,10 +7,10 @@ class SudokuSolver:
         self.sudoku = sudoku
         self._update_particular_clauses()
 
-    def _rank(self, i, j, d):
+    def _ranking(self, i, j, d):
         return i * 81 + j * 9 + d
 
-    def _unrank(self, x):
+    def _unranking(self, x):
         return (x - 1) // 81, ((x - 1) % 81) // 9, ((x - 1) % 9) + 1
 
     def _create_commom_clauses(self):
@@ -23,7 +23,7 @@ class SudokuSolver:
                     if i < j:
                         for d in range(1, 10):
                             self.clauses.append(
-                                [-self._rank(c1[0], c1[1], d), -self._rank(c2[0], c2[1], d)])
+                                [-self._ranking(c1[0], c1[1], d), -self._ranking(c2[0], c2[1], d)])
 
         # Ensure rows have distinct values
         for i in range(9):
@@ -43,14 +43,14 @@ class SudokuSolver:
         for i in range(9):
             for j in range(9):
                 # Contains at least one digit
-                self.clauses.append([self._rank(i, j, d)
+                self.clauses.append([self._ranking(i, j, d)
                                      for d in range(1, 10)])
 
                 # Contains at most one digit
                 for d1 in range(1, 10):
                     for d2 in range(d1 + 1, 10):
                         self.clauses.append(
-                            [-self._rank(i, j, d1), -self._rank(i, j, d2)])
+                            [-self._ranking(i, j, d1), -self._ranking(i, j, d2)])
 
         assert len(self.clauses) == 81 * (1 + 36) + 27 * 324
 
@@ -62,7 +62,7 @@ class SudokuSolver:
             for j in range(9):
                 d = self.sudoku[i][j]
                 if d:
-                    self.clauses.append([self._rank(i, j, d)])
+                    self.clauses.append([self._ranking(i, j, d)])
 
     def solve(self):
         self.solver.clear_interrupt()
@@ -73,7 +73,7 @@ class SudokuSolver:
 
             for e in self.solver.get_model():
                 if e > 0:
-                    i, j, d = self._unrank(e)
+                    i, j, d = self._unranking(e)
                     self.sudoku[i][j] = d
 
             self.print_sudoku()
