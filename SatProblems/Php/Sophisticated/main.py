@@ -1,6 +1,7 @@
 import itertools
 from pysat.solvers import *
 
+
 class PHPSatSolver:
     def __init__(self, nof_holes):
         self.nof_holes = nof_holes
@@ -23,12 +24,14 @@ class PHPSatSolver:
                 pigeons.append(-variables[i*self.nof_holes + j])
             for combination in itertools.combinations(pigeons, 2):
                 clauses.append(list(combination))
+        print(clauses)
 
         return clauses
 
     def Solve(self, solver_name="lingeling", with_proof=True):
         print("Checking satisfiability...")
-        solver = Solver(name=solver_name, bootstrap_with=self.clauses, with_proof=with_proof)
+        solver = Solver(name=solver_name,
+                        bootstrap_with=self.clauses, with_proof=with_proof)
 
         if solver.solve():
             print("[SAT] ", end=" ")
