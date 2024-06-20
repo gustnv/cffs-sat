@@ -1,13 +1,12 @@
+# This is a simple example of how to use the PySAT library to solve a SAT problem.
+
 from pysat.solvers import *
 
-# Define the list of clauses
-cnf = [
-    [-1, -2, -3],  # Clause 1: ~1 OR ~2 OR ~3
-    [1, -2],       # Clause 2: 1 OR ~2
-    [2, -3],       # Clause 3: 2 OR ~3
-    [3, -1],       # Clause 4: 3 OR ~1
-    [1, 2, 3]      # Clause 5: 1 OR 2 OR 3
-]
+"""
+ Create conjunctive normal form (CNF) from the following expression: 
+ (-1 v -2 v -3) ^ (1 v -2) ^ (2 v -3) ^ (3 v -1) ^ (1 v 2 v 3)
+"""
+cnf = [[-1, -2, -3], [1, -2], [2, -3], [3, -1], [1, 2, 3]]
 
 s = Solver(bootstrap_with=cnf[1:])
 
