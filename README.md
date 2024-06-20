@@ -17,3 +17,4 @@ Cover-free families (CFFs) are interesting combinatorial objects used in coding 
 ## 🌿 Credits
 - Thanks for guidance [Thais Bardini Idalino](https://thaisidalino.github.io/)
 - Credit to Antti Karkinen [TCC](https://aaltodoc.aalto.fi/server/api/core/bitstreams/6b9aeb0b-2797-47e5-8da2-4ee8b38dc963/content) that was a motivation to this project
+- Credit to [Curtis Bright](https://cs.curtisbright.com/) for some interpretations of SAT problems
