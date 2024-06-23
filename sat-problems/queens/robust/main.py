@@ -1,3 +1,6 @@
+# Coded by: Alexander Kulikov
+# Advanced usage of the pysat library to solve the N-Queens problem.
+# This serves as an inspiration for creating CNFs.
 from itertools import *
 from pysat.solvers import Solver
 from pysat.card import *
