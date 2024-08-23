@@ -35,9 +35,9 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
 
 class CFFSATSolver:
     def __init__(self):
-        self.delta = 2
-        self.colors = 1
-        self.sets = 1
+        self.d = 2
+        self.t = 1
+        self.n = 1
         self.clauses = []
         self.timeout = 60*10
         self.timer = timeit.default_timer()
@@ -45,7 +45,7 @@ class CFFSATSolver:
         self.solutionExists = Value('d', 0.0)
         self.solution = Array('i', [])
         self.processes = []
-        # 'minisat22', 'minisat-gh' and 'minicard' seem to fail/crash while solving on some values. For example delta = 2, colors = 7 and sets = 8
+        # 'minisat22', 'minisat-gh' and 'minicard' seem to fail/crash while solving on some values. For example d = 2, t = 7 and n = 8
         self.defaultSolverNames = [
             'glucose4', 'glucose3', 'maplechrono', 'maplecm', 'maplesat', 'lingeling']
         self.outofmemory = False
@@ -56,57 +56,57 @@ class CFFSATSolver:
     def CreateClauses(self):
         self.clauses = []
 
+        # The algorithm will start by creating a matrix of size n × . We write
+        # A := (xij )T ×N to define an T × N matrix A, with each entry in the matrix called xi,j for
+        # all 1 ≤ i ≤ T and 1 ≤ j ≤ N . Entries in this matrix are N T first Boolean variables used
+        # in our Boolean formula and they determine whether the current color (represented as the
+        # columns in the matrix) is in the subset (represented as the rows in the matrix).
         matrix = []
         i = 1
-        for row in range(self.sets):
+        for column in range(self.n):
             variables = []
-            for column in range(self.colors):
+            for row in range(self.t):
                 variables.append(i)
                 i += 1
             matrix.append(variables)
 
-        for row in list(range(self.sets)):
-            otherRows = list(range(self.sets))
-            otherRows.remove(row)
+        for column in list(range(self.n)):
+            otherColumns = list(range(self.n))
+            otherColumns.remove(column)
 
-            combinations = itertools.combinations(otherRows, self.delta)
+            combinations = itertools.combinations(otherColumns, self.d)
 
-            for coveringRows in combinations:
+            for coveringColumns in combinations:
                 variables = []
-                for column in range(self.colors):
+                for row in range(self.t):
                     variables.append(i)
-                    self.clauses.append([matrix[row][column], -i])
-                    for coveringRow in coveringRows:
+                    self.clauses.append([matrix[column][row], -i])
+                    for coveringColumn in coveringColumns:
                         self.clauses.append(
-                            [-matrix[coveringRow][column], -i])
+                            [-matrix[coveringColumn][row], -i])
                     i += 1
                 self.clauses.append(variables)
 
-        # N*T = 108
-        # combinations of (T-1) rows 2 by 2 = 55
-        # T * combinations * T
-        # print(108 + 12*55*9 + 1)  # i
-
     def PrintSolution(self):
-        sets = []
+        n = []
         current = []
         if self.solutionExists.value == 1.0:
-            for row in self.solution[0:self.sets*self.colors]:
-                if row > 0 and row % self.colors == 0:
-                    current.append(self.colors)
+            for row in self.solution[0:self.n*self.t]:
+                if row > 0 and row % self.t == 0:
+                    current.append(self.t)
                 elif row > 0:
-                    current.append(row % self.colors)
-                if row % self.colors == 0:
-                    sets.append(current)
+                    current.append(row % self.t)
+                if row % self.t == 0:
+                    n.append(current)
                     current = []
-            sets = sorted(sets, key=lambda x: sum(x))
-            print('Sets:')
-            for s in range(len(sets)):
-                if len(sets[s]) > 0:
-                    if s == len(sets) - 1:
-                        print(sets[s])
+            n = sorted(n, key=lambda x: sum(x))
+            print('n:')
+            for s in range(len(n)):
+                if len(n[s]) > 0:
+                    if s == len(n) - 1:
+                        print(n[s])
                     else:
-                        print(sets[s], end=', ')
+                        print(n[s], end=', ')
         elif self.solutionExists.value == -1.0:
             print('UNSAT')
         elif self.solutionExists.value == -2.0:
@@ -119,18 +119,18 @@ class CFFSATSolver:
             print('ERROR')
 
     def UpdateJson(self):
-        sets = []
+        n = []
         current = []
         if self.solutionExists.value == 1.0:
-            for row in self.solution[0:self.sets*self.colors]:
-                if row > 0 and row % self.colors == 0:
-                    current.append(self.colors)
+            for row in self.solution[0:self.n*self.t]:
+                if row > 0 and row % self.t == 0:
+                    current.append(self.t)
                 elif row > 0:
-                    current.append(row % self.colors)
-                if row % self.colors == 0:
-                    sets.append(current)
+                    current.append(row % self.t)
+                if row % self.t == 0:
+                    n.append(current)
                     current = []
-            sets = sorted(sets, key=lambda x: sum(x))
+            n = sorted(n, key=lambda x: sum(x))
 
         filename = 'cffdata.json'
         try:
@@ -139,17 +139,17 @@ class CFFSATSolver:
         except FileNotFoundError:
             data = []
 
-        objInData = [obj for obj in data if obj['delta'] ==
-                     self.delta and obj['colors'] == self.colors and obj['sets'] == self.sets]
+        objInData = [obj for obj in data if obj['d'] ==
+                     self.d and obj['t'] == self.t and obj['n'] == self.n]
 
         if len(objInData) == 0:
             newdata = {
-                'delta': self.delta,
-                'colors': self.colors,
-                'sets': self.sets
+                'd': self.d,
+                't': self.t,
+                'n': self.n
             }
             if self.solutionExists.value == 1.0:
-                newdata['solution'] = sets
+                newdata['solution'] = n
             elif self.solutionExists.value == -1.0:
                 newdata['solution'] = 'UNSAT'
             elif self.solutionExists.value == -2.0:
@@ -164,13 +164,13 @@ class CFFSATSolver:
         elif self.solutionExists.value == 1.0:
             sol = objInData[0]['solution']
             if sol != 'UNSAT':
-                objInData[0]['solution'] = sets
+                objInData[0]['solution'] = n
         elif self.solutionExists.value == -1.0:
             sol = objInData[0]['solution']
             if sol != 'UNSAT':
                 objInData[0]['solution'] = 'UNSAT'
 
-        data = sorted(data, key=itemgetter('delta', 'colors', 'sets'))
+        data = sorted(data, key=itemgetter('d', 't', 'n'))
 
         with open(filename, 'w') as jsonFile:
             opts = jsbeautifier.default_options()
@@ -192,17 +192,17 @@ class CFFSATSolver:
                 data = json.load(jsonFile)
         except FileNotFoundError:
             data = []
-        objInData = [obj for obj in data if obj['delta'] ==
-                     self.delta and obj['colors'] == self.colors and obj['sets'] == self.sets]
+        objInData = [obj for obj in data if obj['d'] ==
+                     self.d and obj['t'] == self.t and obj['n'] == self.n]
         if len(objInData) != 0 and isinstance(objInData[0]['solution'], list) and len(objInData[0]['solution']) != 0:
-            print('Delta:', self.delta, 'Colors:',
-                  self.colors, 'Sets:', self.sets)
+            print('d:', self.d, 't:',
+                  self.t, 'n:', self.n)
             print('Solution already in json\n')
             self.solutionExists.value = 1.0
             return True
         elif len(objInData) != 0 and objInData[0]['solution'] == 'UNSAT':
-            print('Delta:', self.delta, 'Colors:',
-                  self.colors, 'Sets:', self.sets)
+            print('d:', self.d, 't:',
+                  self.t, 'n:', self.n)
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
@@ -210,26 +210,26 @@ class CFFSATSolver:
             return False
 
     def SetKwargsOne(self, **kwargs):
-        if 'delta' in kwargs:
-            self.delta = kwargs['delta']
-        if 'colors' in kwargs:
-            self.colors = kwargs['colors']
-        if 'sets' in kwargs:
-            self.sets = kwargs['sets']
+        if 'd' in kwargs:
+            self.d = kwargs['d']
+        if 't' in kwargs:
+            self.t = kwargs['t']
+        if 'n' in kwargs:
+            self.n = kwargs['n']
 
     def SetKwargsAll(self, **kwargs):
-        if 'delta' in kwargs:
-            self.delta = kwargs['delta']
+        if 'd' in kwargs:
+            self.d = kwargs['d']
         else:
-            self.delta = 2
-        if 'colors' in kwargs:
-            self.colors = kwargs['colors']
+            self.d = 2
+        if 't' in kwargs:
+            self.t = kwargs['t']
         else:
-            self.colors = 1
-        if 'sets' in kwargs:
-            self.sets = kwargs['sets']
+            self.t = 1
+        if 'n' in kwargs:
+            self.n = kwargs['n']
         else:
-            self.sets = 1
+            self.n = 1
 
     def SwitchToSingleSolver(self):
         self.outofmemory = True
@@ -237,7 +237,7 @@ class CFFSATSolver:
         self.TerminateProcesses()
         self.CreateClauses()
         self.solutionExists.value = 0.0
-        self.solution = Array('i', [0] * self.sets * self.colors)
+        self.solution = Array('i', [0] * self.n * self.t)
         self.processes = []
         p = Process(target=_FindParallel, args=(self.singleSolverName,
                                                 self.lock, self.solution, self.solutionExists, self.clauses))
@@ -252,8 +252,8 @@ class CFFSATSolver:
 
         self.CreateClauses()
         self.solutionExists.value = 0.0
-        self.solution = Array('i', [0] * self.sets * self.colors)
-        print('Delta:', self.delta, 'Colors:', self.colors, 'Sets:', self.sets,
+        self.solution = Array('i', [0] * self.n * self.t)
+        print('d:', self.d, 't:', self.t, 'n:', self.n,
               'len(clauses):', len(self.clauses))
         self.processes = []
 
@@ -296,10 +296,10 @@ class CFFSATSolver:
 
     def FindAll(self, **kwargs):
         self.SetKwargsAll(**kwargs)
-        if self.colors <= self.delta:
-            self.colors = self.delta + 1
-        if self.sets < self.colors:
-            self.sets = self.colors
+        if self.t <= self.d:
+            self.t = self.d + 1
+        if self.n < self.t:
+            self.n = self.t
 
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
@@ -308,16 +308,16 @@ class CFFSATSolver:
         while not self.outofmemorySingleSolver:
             self.FindOneNoMemReset()
             if self.solutionExists.value == 1.0:
-                self.sets += 1
+                self.n += 1
             else:
-                self.colors += 1
-                self.sets = self.colors
+                self.t += 1
+                self.n = self.t
 
 
 if __name__ == '__main__':
     solver = CFFSATSolver()
     solver.timeout = 60 * 60
-    solver.colors = 9
-    solver.sets = 12
-    solver.delta = 2
+    solver.t = 9
+    solver.n = 12
+    solver.d = 2
     solver.FindOne()
