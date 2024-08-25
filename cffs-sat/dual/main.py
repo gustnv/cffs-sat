@@ -56,21 +56,12 @@ class CFFSATSolver:
     def CreateClauses(self):
         self.clauses = []
 
-        # The algorithm will start by creating a matrix of size n × . We write
-        # A := (xij )T ×N to define an T × N matrix A, with each entry in the matrix called xi,j for
-        # all 1 ≤ i ≤ T and 1 ≤ j ≤ N . Entries in this matrix are N T first Boolean variables used
-        # in our Boolean formula and they determine whether the current color (represented as the
-        # columns in the matrix) is in the subset (represented as the rows in the matrix).
-        matrix = []
-        i = 1
-        for column in range(self.n):
-            variables = []
-            for row in range(self.t):
-                variables.append(i)
-                i += 1
-            matrix.append(variables)
+        m = [
+            [i + j * self.t for j in range(self.n)] for i in range(1, self.t + 1)]
 
-        for column in list(range(self.n)):
+        y = m[self.t - 1][self.n - 1] + 1
+
+        for column in range(self.n):
             otherColumns = list(range(self.n))
             otherColumns.remove(column)
 
@@ -79,13 +70,17 @@ class CFFSATSolver:
             for coveringColumns in combinations:
                 variables = []
                 for row in range(self.t):
-                    variables.append(i)
-                    self.clauses.append([matrix[column][row], -i])
+                    variables.append(y)
+                    self.clauses.append([m[row][column], -y])
                     for coveringColumn in coveringColumns:
                         self.clauses.append(
-                            [-matrix[coveringColumn][row], -i])
-                    i += 1
+                            [-m[row][coveringColumn], -y])
+                    y += 1
                 self.clauses.append(variables)
+        # N*T = 108
+        # combinations of (T-1) rows 2 by 2 = 55
+        # T * combinations * T
+        # print(108 + 12*55*9 + 1)  # i
 
     def PrintSolution(self):
         n = []
@@ -320,4 +315,5 @@ if __name__ == '__main__':
     solver.t = 9
     solver.n = 12
     solver.d = 2
+    # solver.CreateClauses()
     solver.FindOne()
