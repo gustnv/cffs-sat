@@ -64,6 +64,7 @@ class CFFSATSolver:
                 variables.append(i)
                 i += 1
             matrix.append(variables)
+        print(i)
 
         for row in list(range(self.sets)):
             otherRows = list(range(self.sets))
