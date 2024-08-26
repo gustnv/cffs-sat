@@ -55,7 +55,6 @@ class CFFSATSolver:
 
     def CreateClauses(self):
         self.clauses = []
-
         m = []
         x = 1
         for row in range(self.t):
@@ -64,6 +63,7 @@ class CFFSATSolver:
                 v.append(x)
                 x += 1
             m.append(v)
+        print(m)
 
         y = x
 
@@ -74,15 +74,15 @@ class CFFSATSolver:
             combinations = itertools.combinations(otherColumns, self.d)
 
             for coveringColumns in combinations:
-                variables = []
+                ys = []
                 for row in range(self.t):
-                    variables.append(y)
+                    ys.append(y)
                     self.clauses.append([m[row][column], -y])
                     for coveringColumn in coveringColumns:
                         self.clauses.append(
                             [-m[row][coveringColumn], -y])
                     y += 1
-                self.clauses.append(variables)
+                self.clauses.append(ys)
 
     def PrintSolution(self):
         if self.solutionExists.value == 1.0:
