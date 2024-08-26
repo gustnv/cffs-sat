@@ -56,10 +56,16 @@ class CFFSATSolver:
     def CreateClauses(self):
         self.clauses = []
 
-        m = [
-            [i + j * self.t for j in range(self.n)] for i in range(1, self.t + 1)]
+        m = []
+        x = 1
+        for row in range(self.t):
+            v = []
+            for column in range(self.n):
+                v.append(x)
+                x += 1
+            m.append(v)
 
-        y = m[self.t - 1][self.n - 1] + 1
+        y = x
 
         for column in range(self.n):
             otherColumns = list(range(self.n))
@@ -77,31 +83,21 @@ class CFFSATSolver:
                             [-m[row][coveringColumn], -y])
                     y += 1
                 self.clauses.append(variables)
-        # N*T = 108
-        # combinations of (T-1) rows 2 by 2 = 55
-        # T * combinations * T
-        # print(108 + 12*55*9 + 1)  # i
 
     def PrintSolution(self):
-        n = []
-        current = []
         if self.solutionExists.value == 1.0:
-            for row in self.solution[0:self.n*self.t]:
-                if row > 0 and row % self.t == 0:
-                    current.append(self.t)
-                elif row > 0:
-                    current.append(row % self.t)
-                if row % self.t == 0:
-                    n.append(current)
-                    current = []
-            n = sorted(n, key=lambda x: sum(x))
-            print('n:')
-            for s in range(len(n)):
-                if len(n[s]) > 0:
-                    if s == len(n) - 1:
-                        print(n[s])
-                    else:
-                        print(n[s], end=', ')
+            blocks = [[] for _ in range(self.n)]
+
+            for x in self.solution[0:self.n*self.t]:
+                if x > 0:
+                    blocks[x % self.n].append(x // self.n + 1)
+
+            blocks = sorted(blocks, key=lambda x: sum(x))
+            print('blocks:')
+            for block in blocks:
+                print(block, end=" ")
+            print()
+
         elif self.solutionExists.value == -1.0:
             print('UNSAT')
         elif self.solutionExists.value == -2.0:
@@ -114,18 +110,15 @@ class CFFSATSolver:
             print('ERROR')
 
     def UpdateJson(self):
-        n = []
-        current = []
+        blocks = []
         if self.solutionExists.value == 1.0:
-            for row in self.solution[0:self.n*self.t]:
-                if row > 0 and row % self.t == 0:
-                    current.append(self.t)
-                elif row > 0:
-                    current.append(row % self.t)
-                if row % self.t == 0:
-                    n.append(current)
-                    current = []
-            n = sorted(n, key=lambda x: sum(x))
+            blocks = [[] for _ in range(self.n)]
+
+            for x in self.solution[0:self.n*self.t]:
+                if x > 0:
+                    blocks[x % self.n].append(x // self.n + 1)
+
+            blocks = sorted(blocks, key=lambda x: sum(x))
 
         filename = 'cffdata.json'
         try:
@@ -144,7 +137,7 @@ class CFFSATSolver:
                 'n': self.n
             }
             if self.solutionExists.value == 1.0:
-                newdata['solution'] = n
+                newdata['solution'] = blocks
             elif self.solutionExists.value == -1.0:
                 newdata['solution'] = 'UNSAT'
             elif self.solutionExists.value == -2.0:
@@ -159,7 +152,7 @@ class CFFSATSolver:
         elif self.solutionExists.value == 1.0:
             sol = objInData[0]['solution']
             if sol != 'UNSAT':
-                objInData[0]['solution'] = n
+                objInData[0]['solution'] = blocks
         elif self.solutionExists.value == -1.0:
             sol = objInData[0]['solution']
             if sol != 'UNSAT':
@@ -242,8 +235,8 @@ class CFFSATSolver:
 
     def FindOneNoMemReset(self, **kwargs):
         self.timer = timeit.default_timer()
-        if self.SolutionCached():
-            return
+        # if self.SolutionCached():
+        #     return
 
         self.CreateClauses()
         self.solutionExists.value = 0.0
@@ -315,5 +308,5 @@ if __name__ == '__main__':
     solver.t = 9
     solver.n = 12
     solver.d = 2
-    # solver.CreateClauses()
+    solver.CreateClauses()
     solver.FindOne()
