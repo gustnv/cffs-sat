@@ -63,7 +63,6 @@ class CFFSATSolver:
                 v.append(x)
                 x += 1
             m.append(v)
-        print(m)
 
         y = x
 

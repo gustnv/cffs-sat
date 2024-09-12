@@ -5,7 +5,7 @@ from pysat.solvers import Solver
 cnf = [[-1, -2, -3], [1, -2], [2, -3], [3, -1], [1, 2, 3]]
 
 # Create a solver object and initialize it with some clauses (bootstrap_with)
-s = Solver(bootstrap_with=cnf[1:])
+s = Solver(name="mgh", bootstrap_with=cnf[1:])
 
 # Solve the problem
 if s.solve():
