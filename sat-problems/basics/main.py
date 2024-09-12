@@ -16,8 +16,6 @@ else:
     # Print a message indicating no satisfying model is found
     print("UNSAT: No model found")
 
-# Clear the solver to prepare for adding new clauses
-s.clear_interrupt()
 
 # Add new clauses to the solver
 s.append_formula(cnf)
