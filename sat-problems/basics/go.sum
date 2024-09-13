@@ -6,3 +6,5 @@ github.com/gustnv/gosat v0.0.0-20240912215258-177a12cd86ec h1:kGgdQc2MTBAMO9j6uD
 github.com/gustnv/gosat v0.0.0-20240912215258-177a12cd86ec/go.mod h1:XzuA6NrNVzIJXRL7aDkO4C+IcF+JpjHIucFPkZRnHHI=
 github.com/gustnv/gosat v0.0.0-20240912234259-c42495e60e1e h1:FmhCzGrcr1MaC01HOZvuowrudMViCyjTukepRz1ECY0=
 github.com/gustnv/gosat v0.0.0-20240912234259-c42495e60e1e/go.mod h1:XzuA6NrNVzIJXRL7aDkO4C+IcF+JpjHIucFPkZRnHHI=
+github.com/gustnv/gosat v0.0.0-20240912235601-73fdf0c86e97 h1:6HX3Hg5RQnpVfonpFjy3z+rEdxgci8/d70hy46swEm0=
+github.com/gustnv/gosat v0.0.0-20240912235601-73fdf0c86e97/go.mod h1:XzuA6NrNVzIJXRL7aDkO4C+IcF+JpjHIucFPkZRnHHI=

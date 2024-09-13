@@ -17,12 +17,11 @@ func main() {
 	}
 
 	// Create a new solver object and initialize it with some clauses (bootstrapWith)
-	s, err := solver.NewSolver(cnf[1:], false, false)
+	s, err := solver.NewSolver(cnf[1:])
 	if err != nil {
 		fmt.Println("Error creating solver:", err)
 		return
 	}
-	defer s.Delete() // Ensure solver resources are released
 
 	// Solve the problem
 	solved, err := s.Solve()
@@ -41,6 +40,14 @@ func main() {
 		}
 	} else {
 		fmt.Println("UNSAT: No model found")
+	}
+
+	s.Delete() // Ensure solver resources are released
+
+	s, err = solver.NewSolver(cnf[1:])
+	if err != nil {
+		fmt.Println("Error creating solver:", err)
+		return
 	}
 
 	// Add new clauses to the solver
