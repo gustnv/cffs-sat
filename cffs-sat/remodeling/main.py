@@ -132,7 +132,7 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            print("Is cff:", is_cff(blocks, self.d))
+            # print("Is cff:", is_cff(blocks, self.d))
             blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
@@ -343,7 +343,7 @@ class CFFSATSolver:
                 self.n = self.t
 
     def SolveForSetOfValues(self, values):
-        for n, t in values:
+        for t, n in values:
             self.n = n
             self.t = t
             print(f"Calculating solution for t={t}, n={n}")
