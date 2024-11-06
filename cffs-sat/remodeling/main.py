@@ -157,7 +157,7 @@ class CFFSATSolver:
 
             for x in self.solution[0:self.n*self.t]:
                 if x > 0:
-                    blocks[x % self.n].append(x // self.n + 1)
+                    blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
             blocks = sorted(blocks, key=lambda x: sum(x))
 
@@ -357,7 +357,7 @@ if __name__ == '__main__':
     # solver.n = 12
     # solver.d = 2
 
-    cleaned_values = [
+    values = [
         (3, 3), (4, 4), (5, 5), (6, 6), (7, 7),
         (8, 8), (9, 12), (10, 13), (11, 17), (12, 20),
         (13, 26), (14, 28), (15, 34), (16, 34), (17, 36),
