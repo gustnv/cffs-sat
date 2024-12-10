@@ -82,9 +82,6 @@ class CFFSATSolver:
                             [-m[row][coveringColumn], -y])
                     y += 1
                 self.clauses.append(ys)
-            print(len(self.clauses))
-
-        print(y)
 
     def PrintSolution(self):
         if self.solutionExists.value == 1.0:

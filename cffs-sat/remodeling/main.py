@@ -132,7 +132,7 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            # print("Is cff:", is_cff(blocks, self.d))
+            print("Is cff:", is_cff(blocks, self.d))
             blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
@@ -353,19 +353,20 @@ class CFFSATSolver:
 if __name__ == '__main__':
     solver = CFFSATSolver()
     solver.timeout = 60 * 60
-    # solver.t = 9
-    # solver.n = 12
-    # solver.d = 2
-
-    values = [
-        (3, 3), (4, 4), (5, 5), (6, 6), (7, 7),
-        (8, 8), (9, 12), (10, 13), (11, 17), (12, 20),
-        (13, 26), (14, 28), (15, 34), (16, 34), (17, 36),
-        (18, 43), (19, 44), (20, 50), (21, 56), (22, 57),
-        (23, 62), (24, 72), (25, 76), (26, 79), (27, 89),
-        (28, 99), (29, 107), (30, 116), (31, 117), (32, 116)
-    ]
-    solver.SolveForSetOfValues(values)
 
     # solver.FindAll()
-    # solver.FindOne()
+
+    # values = [
+    #     (3, 3), (4, 4), (5, 5), (6, 6), (7, 7),
+    #     (8, 8), (9, 12), (10, 13), (11, 17), (12, 20),
+    #     (13, 26), (14, 28), (15, 34), (16, 34), (17, 36),
+    #     (18, 43), (19, 44), (20, 50), (21, 56), (22, 57),
+    #     (23, 62), (24, 72), (25, 76), (26, 79), (27, 89),
+    #     (28, 99), (29, 107), (30, 116), (31, 117), (32, 116)
+    # ]
+    # solver.SolveForSetOfValues(values)
+
+    solver.t = 9
+    solver.n = 12
+    solver.d = 2
+    solver.FindOne()
