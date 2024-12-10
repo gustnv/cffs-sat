@@ -304,8 +304,8 @@ class CFFSATSolver:
 if __name__ == '__main__':
     solver = CFFSATSolver()
     solver.timeout = 60 * 60
-    solver.t = 9
-    solver.n = 12
+    solver.t = 11
+    solver.n = 17
     solver.d = 2
 
     # solver.CreateClauses()

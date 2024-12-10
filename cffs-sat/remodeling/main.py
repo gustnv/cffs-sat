@@ -81,48 +81,49 @@ class CFFSATSolver:
         self.singleSolverName = 'glucose4'
         self.solverNames = self.defaultSolverNames
 
-    def CreateClauses(self):
-        t = self.t
-        n = self.n
-        d = self.d
+    def CreateClauses2(self):
+        pass
 
-        clauses = []
+    def CreateClauses(self):
+        # Create cff representation matrix.
         m = []
         x = 1
-        for row in range(t):
+        for row in range(self.t):
             v = []
-            for column in range(n):
+            for column in range(self.n):
                 v.append(x)
                 x += 1
             m.append(v)
 
+        # Initialize w variable.
         w = x
 
-        columns_combinations = itertools.combinations(range(n), d + 1)
+        # Get all combinations of columns, d + 1 by d + 1.
+        columns_combinations = itertools.combinations(range(self.n), self.d+1)
+
         for selected_columns in columns_combinations:
-            w_m = [[0 for _ in range(n)] for _ in range(t)]
-            for w_r in range(t):
+            # Create and fill blablabla matrix.
+            w_m = [[0 for _ in range(self.n)] for _ in range(self.t)]
+            for w_r in range(self.t):
                 for w_c in selected_columns:
                     w_m[w_r][w_c] = w
                     w += 1
 
-            for row_ind in range(t):
+            for row_ind in range(self.t):
                 for col_ind in selected_columns:
                     for cursor in selected_columns:
                         if cursor == col_ind:
-                            clauses.append(
+                            self.clauses.append(
                                 [-w_m[row_ind][col_ind], m[row_ind][cursor]])
                         else:
-                            clauses.append(
+                            self.clauses.append(
                                 [-w_m[row_ind][col_ind], -m[row_ind][cursor]])
 
             for col_ind in selected_columns:
                 ws = []
-                for row_ind in range(t):
+                for row_ind in range(self.t):
                     ws.append(w_m[row_ind][col_ind])
-                clauses.append(ws[:])
-
-        self.clauses = clauses
+                self.clauses.append(ws[:])
 
     def PrintSolution(self):
         if self.solutionExists.value == 1.0:
@@ -352,7 +353,7 @@ class CFFSATSolver:
 
 if __name__ == '__main__':
     solver = CFFSATSolver()
-    solver.timeout = 60 * 60
+    solver.timeout = 60 * 60 * 10
 
     # solver.FindAll()
 
@@ -366,7 +367,7 @@ if __name__ == '__main__':
     # ]
     # solver.SolveForSetOfValues(values)
 
-    solver.t = 9
-    solver.n = 12
+    solver.t = 11
+    solver.n = 17
     solver.d = 2
     solver.FindOne()
