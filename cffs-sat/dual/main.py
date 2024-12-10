@@ -46,8 +46,8 @@ class CFFSATSolver:
         self.solution = Array('i', [])
         self.processes = []
         # 'minisat22', 'minisat-gh' and 'minicard' seem to fail/crash while solving on some values. For example d = 2, t = 7 and n = 8
-        self.defaultSolverNames = [
-            'glucose4', 'glucose3', 'maplechrono', 'maplecm', 'maplesat', 'lingeling']
+        self.defaultSolverNames = ['glucose4', 'glucose3',
+                                   'maplechrono', 'maplecm', 'maplesat', 'lingeling']
         self.outofmemory = False
         self.outofmemorySingleSolver = False
         self.singleSolverName = 'glucose4'
@@ -82,6 +82,9 @@ class CFFSATSolver:
                             [-m[row][coveringColumn], -y])
                     y += 1
                 self.clauses.append(ys)
+            print(len(self.clauses))
+
+        print(y)
 
     def PrintSolution(self):
         if self.solutionExists.value == 1.0:
@@ -89,7 +92,7 @@ class CFFSATSolver:
 
             for x in self.solution[0:self.n*self.t]:
                 if x > 0:
-                    blocks[x % self.n].append(x // self.n + 1)
+                    blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
             blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
@@ -307,5 +310,7 @@ if __name__ == '__main__':
     solver.t = 9
     solver.n = 12
     solver.d = 2
-    solver.CreateClauses()
+
+    # solver.CreateClauses()
+    # solver.FindAll()
     solver.FindOne()
