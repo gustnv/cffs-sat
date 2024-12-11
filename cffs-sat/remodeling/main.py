@@ -81,10 +81,9 @@ class CFFSATSolver:
         self.singleSolverName = 'glucose4'
         self.solverNames = self.defaultSolverNames
 
-    def CreateClauses2(self):
-        pass
-
     def CreateClauses(self):
+        self.clauses = []
+
         # Create cff representation matrix.
         m = []
         x = 1
@@ -101,29 +100,165 @@ class CFFSATSolver:
         # Get all combinations of columns, d + 1 by d + 1.
         columns_combinations = itertools.combinations(range(self.n), self.d+1)
 
+        # For each combination of columns.
         for selected_columns in columns_combinations:
-            # Create and fill blablabla matrix.
+            # Create and fill auxilar matrix.
             w_m = [[0 for _ in range(self.n)] for _ in range(self.t)]
             for w_r in range(self.t):
                 for w_c in selected_columns:
                     w_m[w_r][w_c] = w
                     w += 1
 
+            # For each row.
             for row_ind in range(self.t):
+                # For each column in selected columns.
                 for col_ind in selected_columns:
+                    # Iterate through selected columns.
                     for cursor in selected_columns:
                         if cursor == col_ind:
+                            # w_m[row_ind][col_ind] => m[row_ind][cursor]
                             self.clauses.append(
                                 [-w_m[row_ind][col_ind], m[row_ind][cursor]])
                         else:
+                            # w_m[row_ind][col_ind] => -m[row_ind][cursor]
                             self.clauses.append(
                                 [-w_m[row_ind][col_ind], -m[row_ind][cursor]])
 
+            # For each column in selected columns.
             for col_ind in selected_columns:
                 ws = []
+                # For each row.
                 for row_ind in range(self.t):
                     ws.append(w_m[row_ind][col_ind])
                 self.clauses.append(ws[:])
+
+    def CreateClauses1(self, k: int):
+        self.clauses = []
+
+        # Create cff representation matrix.
+        m = []
+        x = 1
+        for row in range(self.t):
+            v = []
+            for column in range(self.n):
+                v.append(x)
+                x += 1
+            m.append(v)
+
+        # Initialize w variable.
+        w = x
+
+        # Get all combinations of columns, d + 1 by d + 1.
+        columns_combinations = itertools.combinations(range(self.n), self.d+1)
+
+        # For each combination of columns.
+        for selected_columns in columns_combinations:
+            # Create and fill auxilar matrix.
+            w_m = [[0 for _ in range(self.n)] for _ in range(self.t)]
+            for w_r in range(self.t):
+                for w_c in selected_columns:
+                    w_m[w_r][w_c] = w
+                    w += 1
+
+            # For each row.
+            for row_ind in range(self.t):
+                # For each column in selected columns.
+                for col_ind in selected_columns:
+                    # Iterate through selected columns.
+                    for cursor in selected_columns:
+                        if cursor == col_ind:
+                            # w_m[row_ind][col_ind] => m[row_ind][cursor]
+                            self.clauses.append(
+                                [-w_m[row_ind][col_ind], m[row_ind][cursor]])
+                        else:
+                            # w_m[row_ind][col_ind] => -m[row_ind][cursor]
+                            self.clauses.append(
+                                [-w_m[row_ind][col_ind], -m[row_ind][cursor]])
+
+            # For each column in selected columns.
+            for col_ind in selected_columns:
+                ws = []
+                # For each row.
+                for row_ind in range(self.t):
+                    ws.append(w_m[row_ind][col_ind])
+                self.clauses.append(ws[:])
+
+        # Initialize z variable.
+        z = w
+
+        # For each row.
+        for row in range(self.t):
+            zs = []
+            columns_possibilities = itertools.combinations(
+                range(self.n), self.n - k)
+            for columns_posibility in columns_possibilities:
+                zs.append(z)
+                for column in columns_posibility:
+                    self.clauses.append([-z, -m[row][column]])
+                z += 1
+            self.clauses.append(zs[:])
+
+    def CreateClauses2(self):
+        self.clauses = []
+
+        # Create cff representation matrix.
+        m = []
+        x = 1
+        for row in range(self.t):
+            v = []
+            for column in range(self.n):
+                v.append(x)
+                x += 1
+            m.append(v)
+
+        # Get all combinations of columns, d by d.
+        columns_combinations = []
+        for i in range(self.n):
+            combination = []
+            for j in range(self.d):
+                combination.append((i + j) % self.n)
+            columns_combinations.append(combination[:])
+
+        # Initialize y variable.
+        y = x
+
+        # The d columns dont cover themselves.
+        for columns_combination in columns_combinations:
+            for column in columns_combination:
+                coveringColumns = columns_combination[:]
+                coveringColumns.remove(column)
+
+                # y means that the m[row][column] is not covered for a given combination.
+                ys = []
+                for row in range(self.t):
+                    ys.append(y)
+                    # If m[row][column] is false then it is covered.
+                    self.clauses.append([m[row][column], -y])
+                    for coveringColumn in coveringColumns:
+                        # If m[row][coveringColumn] is true then it is covered.
+                        self.clauses.append(
+                            [-m[row][coveringColumn], -y])
+                    y += 1
+                self.clauses.append(ys)
+
+        # The d columns dont cover any column.
+        for coveringColumns in columns_combinations:
+            otherColumns = [i for i in range(
+                self.n) if i not in coveringColumns]
+            for column in otherColumns:
+
+                # y means that the m[row][column] is not covered for a given combination.
+                ys = []
+                for row in range(self.t):
+                    ys.append(y)
+                    # If m[row][column] is false then it is covered.
+                    self.clauses.append([m[row][column], -y])
+                    for coveringColumn in coveringColumns:
+                        # If m[row][coveringColumn] is true then it is covered.
+                        self.clauses.append(
+                            [-m[row][coveringColumn], -y])
+                    y += 1
+                self.clauses.append(ys)
 
     def PrintSolution(self):
         if self.solutionExists.value == 1.0:
@@ -280,7 +415,6 @@ class CFFSATSolver:
         # if self.SolutionCached():
         #     return
 
-        self.CreateClauses()
         self.solutionExists.value = 0.0
         self.solution = Array('i', [0] * self.n * self.t)
         print('d:', self.d, 't:', self.t, 'n:', self.n,
@@ -367,7 +501,9 @@ if __name__ == '__main__':
     # ]
     # solver.SolveForSetOfValues(values)
 
-    solver.t = 11
-    solver.n = 17
+    solver.t = 10
+    solver.n = 10
     solver.d = 2
+    solver.CreateClauses()
+    solver.CreateClauses1(3)
     solver.FindOne()

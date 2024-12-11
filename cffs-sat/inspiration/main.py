@@ -54,6 +54,7 @@ class CFFSATSolver:
         self.solverNames = self.defaultSolverNames
 
     def CreateClauses(self):
+        # Create cff representation matrix.
         self.clauses = []
         m = []
         x = 1
@@ -64,15 +65,19 @@ class CFFSATSolver:
                 x += 1
             m.append(v)
 
+        # Initialize y variable.
         y = x
 
+        # For each column.
         for column in range(self.n):
             otherColumns = list(range(self.n))
             otherColumns.remove(column)
 
             combinations = itertools.combinations(otherColumns, self.d)
 
+            # For each combination of columns.
             for coveringColumns in combinations:
+                # Y means that the m[row][column] is not covered for a given combination.
                 ys = []
                 for row in range(self.t):
                     ys.append(y)
