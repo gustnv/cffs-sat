@@ -64,14 +64,14 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
 
 class CFFSATSolver:
     def __init__(self):
-        self.d = 3
+        self.d = 2
         self.t = 3
-        self.n = 2
-        self.k = 0
-        self.filename = 'cffdata0.json'
-        self.CreateClauses = self.CreateClauses0
+        self.n = 3
+        self.k = 2
+        self.filename = 'cffdata1.json'
+        self.CreateClauses = self.CreateClauses1
         self.clauses = []
-        self.timeout = 4
+        self.timeout = 60
         self.timer = timeit.default_timer()
         self.lock = Lock()
         self.solutionExists = Value('d', 0.0)
@@ -309,7 +309,7 @@ class CFFSATSolver:
             data = []
 
         objInData = [obj for obj in data if obj['d'] ==
-                     self.d and obj['t'] == self.t and obj['n'] == self.n]
+                     self.d and obj['t'] == self.t and obj['n'] == self.n and obj['k'] == self.k]
 
         if len(objInData) == 0:
             newdata = {
@@ -342,7 +342,7 @@ class CFFSATSolver:
             if sol != 'UNSAT':
                 objInData[0]['solution'] = 'UNSAT'
 
-        data = sorted(data, key=lambda x: (x['d'], x['n'], -x['t']))
+        data = sorted(data, key=lambda x: (x['k'], x['d'], x['n'], -x['t']))
 
         with open(self.filename, 'w') as jsonFile:
             opts = jsbeautifier.default_options()
@@ -495,5 +495,5 @@ class CFFSATSolver:
 
 if __name__ == '__main__':
     solver = CFFSATSolver()
-    # solver.FindOne(d=2, t=6, n=7)
+    # solver.FindOne(d=2, t=24, n=24)
     solver.FindAll(d=2, n=3, t=3)
