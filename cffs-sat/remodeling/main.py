@@ -64,11 +64,14 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
 
 class CFFSATSolver:
     def __init__(self):
-        self.d = 2
-        self.t = 1
-        self.n = 1
+        self.d = 3
+        self.t = 3
+        self.n = 2
+        self.k = 3
+        self.filename = 'cffdata0.json'
+        self.CreateClauses = self.CreateClauses0
         self.clauses = []
-        self.timeout = 60*10
+        self.timeout = 4
         self.timer = timeit.default_timer()
         self.lock = Lock()
         self.solutionExists = Value('d', 0.0)
@@ -81,7 +84,7 @@ class CFFSATSolver:
         self.singleSolverName = 'glucose4'
         self.solverNames = self.defaultSolverNames
 
-    def CreateClauses(self):
+    def CreateClauses0(self):
         self.clauses = []
 
         # Create cff representation matrix.
@@ -132,7 +135,7 @@ class CFFSATSolver:
                     ws.append(w_m[row_ind][col_ind])
                 self.clauses.append(ws[:])
 
-    def CreateClauses1(self, k: int):
+    def CreateClauses1(self):
         self.clauses = []
 
         # Create cff representation matrix.
@@ -186,11 +189,10 @@ class CFFSATSolver:
         # Initialize z variable.
         z = w
 
-        # For each row.
         for row in range(self.t):
             zs = []
             columns_possibilities = itertools.combinations(
-                range(self.n), self.n - k)
+                range(self.n), self.n - self.k)
             for columns_posibility in columns_possibilities:
                 zs.append(z)
                 for column in columns_posibility:
@@ -261,6 +263,9 @@ class CFFSATSolver:
                 self.clauses.append(ys)
 
     def PrintSolution(self):
+        print('d:', self.d, 'n:', self.n, 't:', self.t,
+              'len(clauses):', len(self.clauses), "time:", self.time)
+
         if self.solutionExists.value == 1.0:
             blocks = [[] for _ in range(self.n)]
 
@@ -268,8 +273,8 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            print("Is cff:", is_cff(blocks, self.d))
-            blocks = sorted(blocks, key=lambda x: sum(x))
+            # print("Is cff:", is_cff(blocks, self.d))
+            # blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
                 print(block, end=" ")
@@ -295,11 +300,10 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            blocks = sorted(blocks, key=lambda x: sum(x))
+            # blocks = sorted(blocks, key=lambda x: sum(x))
 
-        filename = 'cffdata.json'
         try:
-            with open(filename, 'r') as jsonFile:
+            with open(self.filename, 'r') as jsonFile:
                 data = json.load(jsonFile)
         except FileNotFoundError:
             data = []
@@ -310,8 +314,10 @@ class CFFSATSolver:
         if len(objInData) == 0:
             newdata = {
                 'd': self.d,
+                'n': self.n,
                 't': self.t,
-                'n': self.n
+                'clauses': len(self.clauses),
+                'time': self.time
             }
             if self.solutionExists.value == 1.0:
                 newdata['solution'] = blocks
@@ -335,9 +341,9 @@ class CFFSATSolver:
             if sol != 'UNSAT':
                 objInData[0]['solution'] = 'UNSAT'
 
-        data = sorted(data, key=itemgetter('d', 't', 'n'))
+        data = sorted(data, key=lambda x: (x['d'], x['n'], -x['t']))
 
-        with open(filename, 'w') as jsonFile:
+        with open(self.filename, 'w') as jsonFile:
             opts = jsbeautifier.default_options()
             opts.indent_size = 2
             jsonFile.write(jsbeautifier.beautify(json.dumps(data), opts))
@@ -351,26 +357,31 @@ class CFFSATSolver:
             self.lock.release()
 
     def SolutionCached(self):
-        filename = 'cffdata.json'
         try:
-            with open(filename, 'r') as jsonFile:
+            with open(self.filename, 'r') as jsonFile:
                 data = json.load(jsonFile)
         except FileNotFoundError:
             data = []
         objInData = [obj for obj in data if obj['d'] ==
                      self.d and obj['t'] == self.t and obj['n'] == self.n]
+
         if len(objInData) != 0 and isinstance(objInData[0]['solution'], list) and len(objInData[0]['solution']) != 0:
-            print('d:', self.d, 't:',
-                  self.t, 'n:', self.n)
+            print('d:', self.d, 'n:', self.n, 't:', self.t)
             print('Solution already in json\n')
             self.solutionExists.value = 1.0
             return True
         elif len(objInData) != 0 and objInData[0]['solution'] == 'UNSAT':
-            print('d:', self.d, 't:',
-                  self.t, 'n:', self.n)
+            print('d:', self.d, 'n:', self.n, 't:', self.t)
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
+        elif len(objInData) != 0 and objInData[0]['solution'] == 'TIMEOUT':
+            if objInData[0]['time'] < self.timeout:
+                return False
+            else:
+                print('d:', self.d, 'n:', self.n, 't:', self.t)
+                print('Solution already in json\n')
+                return True
         else:
             return False
 
@@ -411,14 +422,14 @@ class CFFSATSolver:
         self.clauses = []
 
     def FindOneNoMemReset(self, **kwargs):
+        self.CreateClauses()
+
         self.timer = timeit.default_timer()
-        # if self.SolutionCached():
-        #     return
+        if self.SolutionCached():
+            return
 
         self.solutionExists.value = 0.0
         self.solution = Array('i', [0] * self.n * self.t)
-        print('d:', self.d, 't:', self.t, 'n:', self.n,
-              'len(clauses):', len(self.clauses))
         self.processes = []
 
         for name in self.solverNames:
@@ -428,7 +439,6 @@ class CFFSATSolver:
             p.start()
             if psutil.virtual_memory()[2] > 90.0:
                 break
-        self.clauses = []
 
         currentTime = 0.0
         while self.solutionExists.value == 0.0:
@@ -446,7 +456,7 @@ class CFFSATSolver:
                 self.solutionExists.value = -3.0
 
         self.TerminateProcesses()
-        print('Time: ', timeit.default_timer() - self.timer)
+        self.time = timeit.default_timer() - self.timer
         self.PrintSolution()
         self.UpdateJson()
         print()
@@ -471,39 +481,18 @@ class CFFSATSolver:
 
         while not self.outofmemorySingleSolver:
             self.FindOneNoMemReset()
-            if self.solutionExists.value == 1.0:
-                self.n += 1
-            else:
-                self.t += 1
-                self.n = self.t
 
-    def SolveForSetOfValues(self, values):
-        for t, n in values:
-            self.n = n
-            self.t = t
-            print(f"Calculating solution for t={t}, n={n}")
-            self.FindOne()
+            if self.solutionExists.value == 1.0:
+                self.t -= 1
+            else:
+                self.n += 1
+                self.t = self.n
+
+            if self.n == 100:
+                break
 
 
 if __name__ == '__main__':
     solver = CFFSATSolver()
-    solver.timeout = 60 * 60 * 10
-
-    # solver.FindAll()
-
-    # values = [
-    #     (3, 3), (4, 4), (5, 5), (6, 6), (7, 7),
-    #     (8, 8), (9, 12), (10, 13), (11, 17), (12, 20),
-    #     (13, 26), (14, 28), (15, 34), (16, 34), (17, 36),
-    #     (18, 43), (19, 44), (20, 50), (21, 56), (22, 57),
-    #     (23, 62), (24, 72), (25, 76), (26, 79), (27, 89),
-    #     (28, 99), (29, 107), (30, 116), (31, 117), (32, 116)
-    # ]
-    # solver.SolveForSetOfValues(values)
-
-    solver.t = 10
-    solver.n = 10
-    solver.d = 2
-    solver.CreateClauses()
-    solver.CreateClauses1(3)
-    solver.FindOne()
+    # solver.FindOne(d=2, t=6, n=7)
+    solver.FindAll(d=2, n=3, t=3)
