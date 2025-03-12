@@ -488,7 +488,7 @@ class CFFSATSolver:
                 self.n += 1
                 self.t = self.n
 
-            if self.n == 100:
+            if self.n == 50:
                 break
 
 
