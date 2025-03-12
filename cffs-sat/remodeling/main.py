@@ -67,7 +67,7 @@ class CFFSATSolver:
         self.d = 3
         self.t = 3
         self.n = 2
-        self.k = 3
+        self.k = 0
         self.filename = 'cffdata0.json'
         self.CreateClauses = self.CreateClauses0
         self.clauses = []
@@ -264,7 +264,7 @@ class CFFSATSolver:
 
     def PrintSolution(self):
         print('d:', self.d, 'n:', self.n, 't:', self.t,
-              'len(clauses):', len(self.clauses), "time:", self.time)
+              'len(clauses):', len(self.clauses), "time:", self.time, "k:", self.k)
 
         if self.solutionExists.value == 1.0:
             blocks = [[] for _ in range(self.n)]
@@ -317,7 +317,8 @@ class CFFSATSolver:
                 'n': self.n,
                 't': self.t,
                 'clauses': len(self.clauses),
-                'time': self.time
+                'time': self.time,
+                'k': self.k
             }
             if self.solutionExists.value == 1.0:
                 newdata['solution'] = blocks
@@ -363,15 +364,15 @@ class CFFSATSolver:
         except FileNotFoundError:
             data = []
         objInData = [obj for obj in data if obj['d'] ==
-                     self.d and obj['t'] == self.t and obj['n'] == self.n]
+                     self.d and obj['t'] == self.t and obj['n'] == self.n and obj['k'] == self.k]
 
         if len(objInData) != 0 and isinstance(objInData[0]['solution'], list) and len(objInData[0]['solution']) != 0:
-            print('d:', self.d, 'n:', self.n, 't:', self.t)
+            print('d:', self.d, 'n:', self.n, 't:', self.t, 'k:', self.k)
             print('Solution already in json\n')
             self.solutionExists.value = 1.0
             return True
         elif len(objInData) != 0 and objInData[0]['solution'] == 'UNSAT':
-            print('d:', self.d, 'n:', self.n, 't:', self.t)
+            print('d:', self.d, 'n:', self.n, 't:', self.t, 'k:', self.k)
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
@@ -379,7 +380,7 @@ class CFFSATSolver:
             if objInData[0]['time'] < self.timeout:
                 return False
             else:
-                print('d:', self.d, 'n:', self.n, 't:', self.t)
+                print('d:', self.d, 'n:', self.n, 't:', self.t, 'k:', self.k)
                 print('Solution already in json\n')
                 return True
         else:
