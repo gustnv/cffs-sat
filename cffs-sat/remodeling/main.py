@@ -64,12 +64,12 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
 
 class CFFSATSolver:
     def __init__(self):
-        self.d = 2
+        self.d = 4
         self.t = 3
         self.n = 3
-        self.k = 2
-        self.filename = 'cffdata1.json'
-        self.CreateClauses = self.CreateClauses1
+        self.k = 0
+        self.filename = 'cffdata2.json'
+        self.CreateClauses = self.CreateClauses2
         self.clauses = []
         self.timeout = 60
         self.timer = timeit.default_timer()
@@ -420,7 +420,6 @@ class CFFSATSolver:
                                                 self.lock, self.solution, self.solutionExists, self.clauses))
         self.processes.append(p)
         p.start()
-        self.clauses = []
 
     def FindOneNoMemReset(self, **kwargs):
         self.CreateClauses()
@@ -495,5 +494,5 @@ class CFFSATSolver:
 
 if __name__ == '__main__':
     solver = CFFSATSolver()
-    # solver.FindOne(d=2, t=24, n=24)
-    solver.FindAll(d=2, n=3, t=3)
+    # solver.FindOne(d=2, t=41, n=41)
+    solver.FindAll(d=4, n=3, t=3)
