@@ -378,12 +378,10 @@ class CFFSATSolver:
         objInData = [obj for obj in data if obj['d'] == self.d and obj['t'] == self.t and obj['n'] == self.n and obj['k'] == self.k]
 
         if len(objInData) != 0 and isinstance(objInData[0]['solution'], list) and len(objInData[0]['solution']) != 0:
-            print('k:', self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
             print('Solution already in json\n')
             self.solutionExists.value = 1.0
             return True
         elif len(objInData) != 0 and objInData[0]['solution'] == 'UNSAT':
-            print('k:', self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
@@ -392,7 +390,6 @@ class CFFSATSolver:
                 self.solutionExists.value = -3.0 if objInData[0]['solution'] == 'TIMEOUT' else -4.0
                 return False
             else:
-                print('k:', self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
                 print('Solution already in json\n')
                 self.solutionExists.value = -3.0 if objInData[0]['solution'] == 'TIMEOUT' else -4.0
                 return True
@@ -418,6 +415,8 @@ class CFFSATSolver:
         """
         self._set_filename(create_clauses_fn.__name__)
         create_clauses_fn()  # fills self.clauses
+
+        print("Finding solution for k:", self.k, 'd:', self.d, 't:', self.t, 'n:', self.n,)
 
         self.timer = timeit.default_timer()
         if self.SolutionCached():
@@ -581,5 +580,5 @@ if __name__ == '__main__':
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
-        solver.UpdateJson()
+        # solver.UpdateJson()
         sys.exit(0)
