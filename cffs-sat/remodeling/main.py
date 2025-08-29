@@ -79,8 +79,7 @@ class CFFSATSolver:
         self.solutionExists = Value('d', 0.0)
         self.solution = Array('i', [])
         self.processes = []
-        self.defaultSolverNames = ['glucose4', 'glucose3',
-                                   'maplechrono', 'maplecm', 'maplesat', 'lingeling']
+        self.defaultSolverNames = ['glucose4', 'glucose3' 'maplechrono', 'maplecm', 'maplesat', 'lingeling']
         self.outofmemory = False
         self.outofmemorySingleSolver = False
         self.singleSolverName = 'glucose4'
@@ -555,7 +554,7 @@ class CFFSATSolver:
         self.outofmemorySingleSolver = False
         self.FindOneNoMemReset(create_clauses_fn)
 
-    def FindAll(self, create_clauses_fn):
+    def FindAllParalel(self, create_clauses_fn):
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
         self.outofmemorySingleSolver = False
@@ -654,35 +653,35 @@ class CFFSATSolver:
         print()
 
 
-    def FindAllSingleSolver(self, create_clauses_fn, solver_name='glucose4'):
+    def FindAllSingleSolver(self, create_clauses_fn, solvers_name=['glucose4']):
         """
         Sequential search like FindAll, but always runs one solver only.
         Uses self.timeout for each single-solver run (so TIMEOUT will be observed).
         """
-        self.solverNames = [solver_name or self.singleSolverName]
         self.outofmemory = False
         self.outofmemorySingleSolver = False
 
-        while not self.outofmemorySingleSolver:
-            # pass self.timeout so the single-solver run uses the same timeout you configured
-            self.FindOneSingleSolver(create_clauses_fn, solver_name, timeout_seconds=self.timeout)
+        for solver_name in solvers_name:
+            while not self.outofmemorySingleSolver:
+                # pass self.timeout so the single-solver run uses the same timeout you configured
+                self.FindOneSingleSolver(create_clauses_fn, solver_name, self.timeout)
 
-            if self.solutionExists.value == 1.0:
-                self.n += 1
-            else:
-                self.t += 1
-                self.n = self.t
+                if self.solutionExists.value == 1.0:
+                    self.n += 1
+                else:
+                    self.t += 1
+                    self.n = self.t
 
-            if self.t == 40:
-                break
+                if self.t == 40:
+                    break
 
 
 if __name__ == '__main__':
     solver = CFFSATSolver(0, 2, 25)
     solver.timeout = 60
     try:
-        solver.FindAll(solver.CreateClausesDisjunctMatrices)
-        # solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices)
+        # solver.FindAllParalel(solver.CreateClausesDisjunctMatrices)
+        solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices, solver.defaultSolverNames)
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
