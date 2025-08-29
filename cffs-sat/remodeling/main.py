@@ -275,7 +275,7 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            print("Is cff:", is_cff(blocks, self.d))
+            # print("Is cff:", is_cff(blocks, self.d))
             # blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
