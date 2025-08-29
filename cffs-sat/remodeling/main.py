@@ -59,11 +59,17 @@ def _run_solver_task(args):
 
 
 class CFFSATSolver:
-    def __init__(self, k, d):
+    def __init__(self, k, d, t=None, n=None):
         self.k = k
         self.d = d
-        self.t = math.ceil(d*1.5)
-        self.n = self.t
+        if t is None:
+            self.t = math.ceil(d*1.5)
+        else:
+            self.t = t
+        if n is None:
+            self.n = self.t
+        else:
+            self.n = n
         self.outputFolder = 'cffdata'
         self.filename = 'cffdata0.json'
         self.clauses = []
