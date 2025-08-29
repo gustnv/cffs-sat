@@ -79,7 +79,7 @@ class CFFSATSolver:
         self.solutionExists = Value('d', 0.0)
         self.solution = Array('i', [])
         self.processes = []
-        self.defaultSolverNames = ['glucose4', 'glucose3' 'maplechrono', 'maplecm', 'maplesat', 'lingeling']
+        self.defaultSolverNames = ["glucose4", "glucose3", "maplechrono", "maplecm", "maplesat", "lingeling"]
         self.outofmemory = False
         self.outofmemorySingleSolver = False
         self.singleSolverName = 'glucose4'
@@ -661,7 +661,18 @@ class CFFSATSolver:
         self.outofmemory = False
         self.outofmemorySingleSolver = False
 
+        initial_k = self.k
+        initial_d = self.d
+        initial_t = self.t
+        initial_n = self.n
+
+        print(solvers_name)
         for solver_name in solvers_name:
+            self.k = initial_k
+            self.d = initial_d
+            self.t = initial_t
+            self.n = initial_n
+            print("Running single-solver:", solver_name)
             while not self.outofmemorySingleSolver:
                 # pass self.timeout so the single-solver run uses the same timeout you configured
                 self.FindOneSingleSolver(create_clauses_fn, solver_name, self.timeout)
@@ -677,8 +688,8 @@ class CFFSATSolver:
 
 
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 2, 25)
-    solver.timeout = 60
+    solver = CFFSATSolver(0, 2)
+    solver.timeout = 5 
     try:
         # solver.FindAllParalel(solver.CreateClausesDisjunctMatrices)
         solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices, solver.defaultSolverNames)
