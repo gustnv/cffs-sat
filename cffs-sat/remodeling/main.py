@@ -666,7 +666,6 @@ class CFFSATSolver:
         initial_t = self.t
         initial_n = self.n
 
-        print(solvers_name)
         for d in [2,3,4]:
             for solver_name in solvers_name:
                 self.k = initial_k
