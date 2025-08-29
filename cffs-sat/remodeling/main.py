@@ -662,29 +662,30 @@ class CFFSATSolver:
         self.outofmemorySingleSolver = False
 
         initial_k = self.k
-        initial_d = self.d
+        # initial_d = self.d
         initial_t = self.t
         initial_n = self.n
 
         print(solvers_name)
-        for solver_name in solvers_name:
-            self.k = initial_k
-            self.d = initial_d
-            self.t = initial_t
-            self.n = initial_n
-            print("Running single-solver:", solver_name)
-            while not self.outofmemorySingleSolver:
-                # pass self.timeout so the single-solver run uses the same timeout you configured
-                self.FindOneSingleSolver(create_clauses_fn, solver_name, self.timeout)
+        for d in [2,3,4]:
+            for solver_name in solvers_name:
+                self.k = initial_k
+                self.d = d
+                self.t = initial_t
+                self.n = initial_n
+                print("Running single-solver:", solver_name)
+                while not self.outofmemorySingleSolver:
+                    # pass self.timeout so the single-solver run uses the same timeout you configured
+                    self.FindOneSingleSolver(create_clauses_fn, solver_name, self.timeout)
 
-                if self.solutionExists.value == 1.0:
-                    self.n += 1
-                else:
-                    self.t += 1
-                    self.n = self.t
+                    if self.solutionExists.value == 1.0:
+                        self.n += 1
+                    else:
+                        self.t += 1
+                        self.n = self.t
 
-                if self.t == 40:
-                    break
+                    if self.t == 40:
+                        break
 
 
 if __name__ == '__main__':
