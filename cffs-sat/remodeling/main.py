@@ -430,9 +430,9 @@ class CFFSATSolver:
         mempercent = psutil.virtual_memory()[2]
         cpu_count = max(1, os.cpu_count() or 1)
         desired = min(len(self.solverNames), cpu_count)
-        if mempercent > 80.0:
+        if mempercent > 70.0:
             concurrency = 1
-        elif mempercent > 70.0:
+        elif mempercent > 50.0:
             concurrency = max(1, desired // 2)
         else:
             concurrency = desired
@@ -678,13 +678,13 @@ class CFFSATSolver:
 
 
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 2, 7)
-    solver.timeout =5
+    solver = CFFSATSolver(0, 2, 25)
+    solver.timeout = 60
     try:
-        # solver.FindAll(solver.CreateClausesDisjunctMatrices)
-        solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices)
+        solver.FindAll(solver.CreateClausesDisjunctMatrices)
+        # solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices)
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
-        solver.UpdateJson()
+        # solver.UpdateJson()
         sys.exit(0)
