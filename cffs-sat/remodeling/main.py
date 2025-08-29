@@ -679,12 +679,11 @@ class CFFSATSolver:
 
 if __name__ == '__main__':
     solver = CFFSATSolver(0, 2, 23)
-    solver.timeout =5
+    solver.timeout = 60
     try:
         # solver.FindAll(solver.CreateClausesDisjunctMatrices)
         solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices)
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
-        solver.UpdateJson()
         sys.exit(0)
