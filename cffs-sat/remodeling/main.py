@@ -6,8 +6,8 @@ import json
 import time
 import jsbeautifier
 import psutil
+import multiprocessing
 import timeit
-
 from multiprocessing import Pool, Lock, Value, Array
 from pysat.solvers import *
 
@@ -275,7 +275,7 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            # print("Is cff:", is_cff(blocks, self.d))
+            print("Is cff:", is_cff(blocks, self.d))
             # blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
@@ -430,9 +430,9 @@ class CFFSATSolver:
         mempercent = psutil.virtual_memory()[2]
         cpu_count = max(1, os.cpu_count() or 1)
         desired = min(len(self.solverNames), cpu_count)
-        if mempercent > 95.0:
+        if mempercent > 80.0:
             concurrency = 1
-        elif mempercent > 90.0:
+        elif mempercent > 70.0:
             concurrency = max(1, desired // 2)
         else:
             concurrency = desired
@@ -572,11 +572,117 @@ class CFFSATSolver:
             if self.t == 40:
                 break
 
+    def FindOneSingleSolver(self, create_clauses_fn, solver_name=None, timeout_seconds=None):
+        """
+        Run exactly one solver in a separate process and enforce a wall-clock timeout.
+        Uses self.timeout when timeout_seconds is None.
+        """
+        self._set_filename(create_clauses_fn.__name__)
+        create_clauses_fn()
+
+        print("Finding solution (single solver) for k:", self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
+
+        self.timer = timeit.default_timer()
+        # if self.SolutionCached():
+        #     return
+
+        self.solutionExists.value = 0.0
+        self.solution = Array('i', [0] * (self.n * self.t))
+
+        if solver_name is None:
+            solver_name = self.singleSolverName
+
+        # prefer explicit argument, otherwise use self.timeout
+        timeout = self.timeout if timeout_seconds is None else timeout_seconds
+        # small safety: ensure timeout is positive
+        if timeout is None or timeout <= 0:
+            timeout = 1200
+
+        result_queue = multiprocessing.Queue()
+
+        def worker(q, name, clauses):
+            q.put(_run_solver_task((name, clauses)))
+
+        p = multiprocessing.Process(target=worker, args=(result_queue, solver_name, list(self.clauses)))
+        p.start()
+        p.join(timeout)
+
+        if p.is_alive():
+            # solver didn't finish in time
+            p.terminate()
+            p.join()
+            self.solutionExists.value = -3.0  # TIMEOUT
+            self.time = timeit.default_timer() - self.timer
+            self.PrintSolution()
+            # self.UpdateJson()
+            print()
+            return
+        else:
+            # process finished — try to read result (wait up to 1s for the queue)
+            try:
+                name, sol, model_or_error = result_queue.get(timeout=1.0)
+            except Exception:
+                # nothing in queue or other error
+                self.solutionExists.value = -2.0  # ERROR
+                self.time = timeit.default_timer() - self.timer
+                self.PrintSolution()
+                # self.UpdateJson()
+                print()
+                return
+
+            # interpret result same way as pool version
+            if model_or_error == 'OUTOFMEMORY':
+                self.solutionExists.value = -4.0
+            elif isinstance(model_or_error, str) and model_or_error.startswith("ERROR:"):
+                self.solutionExists.value = -2.0
+            elif sol is True and model_or_error:
+                model = model_or_error
+                for i in range(min(len(model), self.n * self.t)):
+                    try:
+                        self.solution[i] = int(model[i])
+                    except Exception:
+                        self.solution[i] = 0
+                self.solutionExists.value = 1.0
+            elif sol is False:
+                self.solutionExists.value = -1.0
+            else:
+                self.solutionExists.value = -2.0
+
+        self.time = timeit.default_timer() - self.timer
+        self.PrintSolution()
+        # self.UpdateJson()
+        print()
+
+
+    def FindAllSingleSolver(self, create_clauses_fn, solver_name='glucose4'):
+        """
+        Sequential search like FindAll, but always runs one solver only.
+        Uses self.timeout for each single-solver run (so TIMEOUT will be observed).
+        """
+        self.solverNames = [solver_name or self.singleSolverName]
+        self.outofmemory = False
+        self.outofmemorySingleSolver = False
+
+        while not self.outofmemorySingleSolver:
+            # pass self.timeout so the single-solver run uses the same timeout you configured
+            self.FindOneSingleSolver(create_clauses_fn, solver_name, timeout_seconds=self.timeout)
+
+            if self.solutionExists.value == 1.0:
+                self.n += 1
+            else:
+                self.t += 1
+                self.n = self.t
+
+            if self.t == 40:
+                break
+
+
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 2, 24)
-    solver.timeout = 61 
+    solver = CFFSATSolver(0, 2, 7)
+    solver.timeout =5
     try:
-        solver.FindAll(solver.CreateClausesDisjunctMatrices)
+        # solver.FindAll(solver.CreateClausesDisjunctMatrices)
+        solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices)
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
