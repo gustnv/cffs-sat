@@ -689,7 +689,7 @@ class CFFSATSolver:
 
 if __name__ == '__main__':
     solver = CFFSATSolver(0, 2)
-    solver.timeout = 5 
+    solver.timeout = 600
     try:
         # solver.FindAllParalel(solver.CreateClausesDisjunctMatrices)
         solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices, solver.defaultSolverNames)
