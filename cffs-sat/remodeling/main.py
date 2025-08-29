@@ -1,4 +1,5 @@
 import itertools
+import os
 import json
 import jsbeautifier
 import psutil
@@ -7,7 +8,6 @@ import timeit
 
 from multiprocessing import Process, Lock, Value, Array
 from pysat.solvers import *
-from operator import itemgetter
 
 
 def is_subset(block1, block2):
@@ -68,8 +68,8 @@ class CFFSATSolver:
         self.d = d
         self.t = t
         self.n = n
+        self.outputFolder = 'cffdata'
         self.filename = 'cffdata0.json'
-        self.CreateClauses = self.CreateClauses0
         self.clauses = []
         self.timeout = 60
         self.timer = timeit.default_timer()
@@ -84,7 +84,7 @@ class CFFSATSolver:
         self.singleSolverName = 'glucose4'
         self.solverNames = self.defaultSolverNames
 
-    def CreateClauses0(self):
+    def CreateClausesDisjunctMatrices(self):
         self.clauses = []
 
         # Create cff representation matrix.
@@ -135,7 +135,7 @@ class CFFSATSolver:
                     ws.append(w_m[row_ind][col_ind])
                 self.clauses.append(ws[:])
 
-    def CreateClauses1(self):
+    def CreateClausesWeightK(self):
         self.clauses = []
 
         # Create cff representation matrix.
@@ -200,7 +200,7 @@ class CFFSATSolver:
                 z += 1
             self.clauses.append(zs[:])
 
-    def CreateClauses2(self):
+    def CreateClausesCyclicConstruction(self):
         self.clauses = []
 
         # Create cff representation matrix.
@@ -291,6 +291,15 @@ class CFFSATSolver:
         else:
             print('ERROR')
 
+    def _set_filename(self, method_name):
+        """
+        Dynamically set filename based on the clause creation method and parameters.
+        Example: cffdata/CreateClausesMehtodName/data_k_0_d_2.json
+        """
+        folder = os.path.join(self.outputFolder, method_name)
+        os.makedirs(folder, exist_ok=True)
+        self.filename = os.path.join(folder, f"data_k_{self.k}_d_{self.d}.json")
+
     def UpdateJson(self):
         blocks = []
         if self.solutionExists.value == 1.0:
@@ -313,13 +322,14 @@ class CFFSATSolver:
 
         if len(objInData) == 0:
             newdata = {
-                'k': self.k
+                'k': self.k,
                 'd': self.d,
                 't': self.t,
                 'n': self.n,
                 'clauses': len(self.clauses),
                 'time': self.time,    
             }
+
             if self.solutionExists.value == 1.0:
                 newdata['solution'] = blocks
             elif self.solutionExists.value == -1.0:
@@ -386,11 +396,11 @@ class CFFSATSolver:
         else:
             return False
 
-    def SwitchToSingleSolver(self):
+    def SwitchToSingleSolver(self, create_clauses_fn):
         self.outofmemory = True
         self.solverNames = [self.singleSolverName]
         self.TerminateProcesses()
-        self.CreateClauses()
+        create_clauses_fn()
         self.solutionExists.value = 0.0
         self.solution = Array('i', [0] * self.n * self.t)
         self.processes = []
@@ -399,8 +409,9 @@ class CFFSATSolver:
         self.processes.append(p)
         p.start()
 
-    def FindOneNoMemReset(self, **kwargs):
-        self.CreateClauses()
+    def FindOneNoMemReset(self, create_clauses_fn):
+        self._set_filename(create_clauses_fn.__name__)
+        create_clauses_fn() 
 
         self.timer = timeit.default_timer()
         if self.SolutionCached():
@@ -424,7 +435,7 @@ class CFFSATSolver:
             currentTime += 0.1
             mempercent = psutil.virtual_memory()[2]
             if (mempercent > 95.0 and not self.outofmemory):
-                self.SwitchToSingleSolver()
+                self.SwitchToSingleSolver(create_clauses_fn)
             elif (mempercent > 95.0 and self.outofmemory):
                 self.TerminateProcesses()
                 self.solutionExists.value = -4.0
@@ -439,19 +450,19 @@ class CFFSATSolver:
         self.UpdateJson()
         print()
 
-    def FindOne(self, **kwargs):
+    def FindOne(self, create_clauses_fn):
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
         self.outofmemorySingleSolver = False
-        self.FindOneNoMemReset(**kwargs)
+        self.FindOneNoMemReset(create_clauses_fn)
 
-    def FindAll(self, **kwargs):
+    def FindAll(self, create_clauses_fn):
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
         self.outofmemorySingleSolver = False
 
         while not self.outofmemorySingleSolver:
-            self.FindOneNoMemReset()
+            self.FindOneNoMemReset(create_clauses_fn)
 
             if self.solutionExists.value == 1.0:
                 self.n += 1
@@ -462,8 +473,7 @@ class CFFSATSolver:
             if self.t == 40:
                 break
 
-
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 2, 3 ,3)
-    # solver.FindOne(d=2, t=9, n=12, k=3)
-    solver.FindAll(d=2, n=3, t=3)
+    solver = CFFSATSolver(0, 3, 5 ,5)
+    # solver.FindOne()
+    solver.FindAll(solver.CreateClausesCyclicConstruction)
