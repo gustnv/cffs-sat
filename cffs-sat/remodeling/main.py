@@ -135,7 +135,7 @@ class CFFSATSolver:
                     ws.append(w_m[row_ind][col_ind])
                 self.clauses.append(ws[:])
 
-    def CreateClausesWeightK(self):
+    def CreateClausesWeightedK(self):
         self.clauses = []
 
         # Create cff representation matrix.
