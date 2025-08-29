@@ -376,7 +376,7 @@ class CFFSATSolver:
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
-        elif len(objInData) != 0 and objInData[0]['solution'] == 'TIMEOUT':
+        elif len(objInData) != 0 and (objInData[0]['solution'] == 'TIMEOUT' or objInData[0]['solution'] == 'OUTOFMEMORY'):
             if objInData[0]['time'] < self.timeout:
                 return False
             else:
