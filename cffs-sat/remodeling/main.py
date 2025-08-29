@@ -480,12 +480,12 @@ class CFFSATSolver:
             self.FindOneNoMemReset()
 
             if self.solutionExists.value == 1.0:
-                self.t -= 1
-            else:
                 self.n += 1
-                self.t = self.n
+            else:
+                self.t += 1
+                self.n = self.t
 
-            if self.n == 50:
+            if self.t == 40:
                 break
 
 
