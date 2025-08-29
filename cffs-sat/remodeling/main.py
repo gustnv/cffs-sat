@@ -1,4 +1,5 @@
 import itertools
+import math
 import os
 import json
 import jsbeautifier
@@ -63,11 +64,11 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
 
 
 class CFFSATSolver:
-    def __init__(self, k, d, t, n):
+    def __init__(self, k, d):
         self.k = k
         self.d = d
-        self.t = t
-        self.n = n
+        self.t = math.ceil(d*1.5)
+        self.n = self.t
         self.outputFolder = 'cffdata'
         self.filename = 'cffdata0.json'
         self.clauses = []
@@ -474,6 +475,6 @@ class CFFSATSolver:
                 break
 
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 3, 5 ,5)
+    solver = CFFSATSolver(0, 3)
     # solver.FindOne()
     solver.FindAll(solver.CreateClausesCyclicConstruction)
