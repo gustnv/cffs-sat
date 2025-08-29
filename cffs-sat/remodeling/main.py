@@ -63,11 +63,11 @@ def _FindParallel(name, lock, solution, solutionExists, clauses):
 
 
 class CFFSATSolver:
-    def __init__(self):
-        self.d = 4
-        self.t = 3
-        self.n = 3
-        self.k = 0
+    def __init__(self, k, d, t, n):
+        self.k = k
+        self.d = d
+        self.t = t
+        self.n = n
         self.filename = 'cffdata0.json'
         self.CreateClauses = self.CreateClauses0
         self.clauses = []
@@ -263,8 +263,8 @@ class CFFSATSolver:
                 self.clauses.append(ys)
 
     def PrintSolution(self):
-        print('d:', self.d, 'n:', self.n, 't:', self.t,
-              'len(clauses):', len(self.clauses), "time:", self.time, "k:", self.k)
+        print("k:", self.k, 'd:', self.d, 't:', self.t, 'n:', self.n, 
+              'len(clauses):', len(self.clauses), "time:", self.time)
 
         if self.solutionExists.value == 1.0:
             blocks = [[] for _ in range(self.n)]
@@ -386,30 +386,6 @@ class CFFSATSolver:
         else:
             return False
 
-    def SetKwargsOne(self, **kwargs):
-        if 'd' in kwargs:
-            self.d = kwargs['d']
-        if 't' in kwargs:
-            self.t = kwargs['t']
-        if 'n' in kwargs:
-            self.n = kwargs['n']
-        if 'k' in kwargs:
-            self.k = kwargs['k']
-
-    def SetKwargsAll(self, **kwargs):
-        if 'd' in kwargs:
-            self.d = kwargs['d']
-        else:
-            self.d = 2
-        if 't' in kwargs:
-            self.t = kwargs['t']
-        else:
-            self.t = 1
-        if 'n' in kwargs:
-            self.n = kwargs['n']
-        else:
-            self.n = 1
-
     def SwitchToSingleSolver(self):
         self.outofmemory = True
         self.solverNames = [self.singleSolverName]
@@ -464,14 +440,12 @@ class CFFSATSolver:
         print()
 
     def FindOne(self, **kwargs):
-        self.SetKwargsOne(**kwargs)
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
         self.outofmemorySingleSolver = False
         self.FindOneNoMemReset(**kwargs)
 
     def FindAll(self, **kwargs):
-        self.SetKwargsAll(**kwargs)
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
         self.outofmemorySingleSolver = False
@@ -490,6 +464,6 @@ class CFFSATSolver:
 
 
 if __name__ == '__main__':
-    solver = CFFSATSolver()
+    solver = CFFSATSolver(0, 2, 3 ,3)
     # solver.FindOne(d=2, t=9, n=12, k=3)
     solver.FindAll(d=2, n=3, t=3)
