@@ -69,7 +69,7 @@ class CFFSATSolver:
         self.n = 3
         self.k = 0
         self.filename = 'cffdata2.json'
-        self.CreateClauses = self.CreateClauses2
+        self.CreateClauses = self.CreateClauses1
         self.clauses = []
         self.timeout = 60
         self.timer = timeit.default_timer()
@@ -393,6 +393,8 @@ class CFFSATSolver:
             self.t = kwargs['t']
         if 'n' in kwargs:
             self.n = kwargs['n']
+        if 'k' in kwargs:
+            self.k = kwargs['k']
 
     def SetKwargsAll(self, **kwargs):
         if 'd' in kwargs:
@@ -470,11 +472,6 @@ class CFFSATSolver:
 
     def FindAll(self, **kwargs):
         self.SetKwargsAll(**kwargs)
-        if self.t <= self.d:
-            self.t = self.d + 1
-        if self.n < self.t:
-            self.n = self.t
-
         self.solverNames = self.defaultSolverNames
         self.outofmemory = False
         self.outofmemorySingleSolver = False
@@ -494,5 +491,5 @@ class CFFSATSolver:
 
 if __name__ == '__main__':
     solver = CFFSATSolver()
-    # solver.FindOne(d=2, t=41, n=41)
+    # solver.FindOne(d=2, t=9, n=12, k=3)
     solver.FindAll(d=4, n=3, t=3)
