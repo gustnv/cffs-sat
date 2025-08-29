@@ -313,12 +313,12 @@ class CFFSATSolver:
 
         if len(objInData) == 0:
             newdata = {
-                'd': self.d,
-                'n': self.n,
-                't': self.t,
-                'clauses': len(self.clauses),
-                'time': self.time,
                 'k': self.k
+                'd': self.d,
+                't': self.t,
+                'n': self.n,
+                'clauses': len(self.clauses),
+                'time': self.time,    
             }
             if self.solutionExists.value == 1.0:
                 newdata['solution'] = blocks
@@ -342,7 +342,7 @@ class CFFSATSolver:
             if sol != 'UNSAT':
                 objInData[0]['solution'] = 'UNSAT'
 
-        data = sorted(data, key=lambda x: (x['k'], x['d'], x['n'], -x['t']))
+        data = sorted(data, key=lambda x: (x['k'], x['d'], x['t'], -x['n']))
 
         with open(self.filename, 'w') as jsonFile:
             opts = jsbeautifier.default_options()
@@ -492,4 +492,4 @@ class CFFSATSolver:
 if __name__ == '__main__':
     solver = CFFSATSolver()
     # solver.FindOne(d=2, t=9, n=12, k=3)
-    solver.FindAll(d=4, n=5, t=5)
+    solver.FindAll(d=2, n=3, t=3)
