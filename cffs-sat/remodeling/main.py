@@ -1,13 +1,14 @@
 import itertools
+import sys
 import math
 import os
 import json
+import time
 import jsbeautifier
 import psutil
-import time
 import timeit
 
-from multiprocessing import Process, Lock, Value, Array
+from multiprocessing import Pool, Lock, Value, Array
 from pysat.solvers import *
 
 
@@ -40,27 +41,21 @@ def is_cff(blocks, d):
     return True
 
 
-def _FindParallel(name, lock, solution, solutionExists, clauses):
-    solver = Solver(name=name, bootstrap_with=clauses)
-    sol = None
-    clauses = None
-    sol = solver.solve()
-    model = solver.get_model()
-
-    lock.acquire()
+def _run_solver_task(args):
+    name, clauses = args
     try:
-        if model != None and len(model) > 0:
-            for i in range(len(solution)):
-                solution[i] = model[i]
-        if solutionExists.value == 0.0:
-            if sol != None and sol:
-                solutionExists.value = 1.0
-            elif sol != None and not sol:
-                solutionExists.value = -1.0
-            else:
-                solutionExists.value = -2.0
-    finally:
-        lock.release()
+        solver = Solver(name=name, bootstrap_with=clauses)
+        sol = solver.solve()
+        model = solver.get_model() if sol else None
+        try:
+            solver.delete()
+        except Exception:
+            pass
+        return (name, sol, model)
+    except MemoryError:
+        return (name, None, 'OUTOFMEMORY')
+    except Exception as e:
+        return (name, None, f'ERROR:{type(e).__name__}:{e}')
 
 
 class CFFSATSolver:
@@ -274,7 +269,7 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            # print("Is cff:", is_cff(blocks, self.d))
+            print("Is cff:", is_cff(blocks, self.d))
             # blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
@@ -374,82 +369,180 @@ class CFFSATSolver:
                 data = json.load(jsonFile)
         except FileNotFoundError:
             data = []
-        objInData = [obj for obj in data if obj['d'] ==
-                     self.d and obj['t'] == self.t and obj['n'] == self.n and obj['k'] == self.k]
+        objInData = [obj for obj in data if obj['d'] == self.d and obj['t'] == self.t and obj['n'] == self.n and obj['k'] == self.k]
 
         if len(objInData) != 0 and isinstance(objInData[0]['solution'], list) and len(objInData[0]['solution']) != 0:
-            print('d:', self.d, 'n:', self.n, 't:', self.t, 'k:', self.k)
+            print('k:', self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
             print('Solution already in json\n')
             self.solutionExists.value = 1.0
             return True
         elif len(objInData) != 0 and objInData[0]['solution'] == 'UNSAT':
-            print('d:', self.d, 'n:', self.n, 't:', self.t, 'k:', self.k)
+            print('k:', self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
             print('Solution already in json\n')
             self.solutionExists.value = -1.0
             return True
         elif len(objInData) != 0 and (objInData[0]['solution'] == 'TIMEOUT' or objInData[0]['solution'] == 'OUTOFMEMORY'):
             if objInData[0]['time'] < self.timeout:
+                self.solutionExists.value = -3.0 if objInData[0]['solution'] == 'TIMEOUT' else -4.0
                 return False
             else:
-                print('d:', self.d, 'n:', self.n, 't:', self.t, 'k:', self.k)
+                print('k:', self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
                 print('Solution already in json\n')
+                self.solutionExists.value = -3.0 if objInData[0]['solution'] == 'TIMEOUT' else -4.0
                 return True
         else:
             return False
 
     def SwitchToSingleSolver(self, create_clauses_fn):
+        """
+        Keep behavior: switch to the single solver name (self.singleSolverName).
+        This implementation simply sets solverNames and will run FindOneNoMemReset
+        with concurrency reduced to 1 in a subsequent step.
+        """
         self.outofmemory = True
         self.solverNames = [self.singleSolverName]
-        self.TerminateProcesses()
+        # No process list to terminate now (we use pool approach); prepare to run single-solver next
+        # recreate clauses so the single-solver run uses a fresh set
         create_clauses_fn()
-        self.solutionExists.value = 0.0
-        self.solution = Array('i', [0] * self.n * self.t)
-        self.processes = []
-        p = Process(target=_FindParallel, args=(self.singleSolverName,
-                                                self.lock, self.solution, self.solutionExists, self.clauses))
-        self.processes.append(p)
-        p.start()
 
     def FindOneNoMemReset(self, create_clauses_fn):
+        """
+        Pool-based orchestration with wall-clock timeout (no exceptions),
+        early termination on first solution, and graceful OUTOFMEMORY/ERROR handling.
+        """
         self._set_filename(create_clauses_fn.__name__)
-        create_clauses_fn() 
+        create_clauses_fn()  # fills self.clauses
 
         self.timer = timeit.default_timer()
         if self.SolutionCached():
             return
 
+        # init state
         self.solutionExists.value = 0.0
-        self.solution = Array('i', [0] * self.n * self.t)
-        self.processes = []
+        self.solution = Array('i', [0] * (self.n * self.t))
 
-        for name in self.solverNames:
-            p = Process(target=_FindParallel, args=(name, self.lock,
-                                                    self.solution, self.solutionExists, self.clauses))
-            self.processes.append(p)
-            p.start()
-            if psutil.virtual_memory()[2] > 90.0:
-                break
+        # choose concurrency according to mem pressure & CPU
+        mempercent = psutil.virtual_memory()[2]
+        cpu_count = max(1, os.cpu_count() or 1)
+        desired = min(len(self.solverNames), cpu_count)
+        if mempercent > 95.0:
+            concurrency = 1
+        elif mempercent > 90.0:
+            concurrency = max(1, desired // 2)
+        else:
+            concurrency = desired
 
-        currentTime = 0.0
-        while self.solutionExists.value == 0.0:
-            time.sleep(0.1)
-            currentTime += 0.1
-            mempercent = psutil.virtual_memory()[2]
-            if (mempercent > 95.0 and not self.outofmemory):
-                self.SwitchToSingleSolver(create_clauses_fn)
-            elif (mempercent > 95.0 and self.outofmemory):
-                self.TerminateProcesses()
+        worker_args = [(name, list(self.clauses)) for name in self.solverNames]
+
+        saw_unsat = False
+        saw_outofmemory = False
+        saw_error = False
+
+        pool = Pool(processes=concurrency, maxtasksperchild=1)
+        async_results = [pool.apply_async(_run_solver_task, (args,)) for args in worker_args]
+
+        try:
+            deadline = self.timer + self.timeout
+            pending = list(async_results)
+
+            # poll loop (no exceptions)
+            while pending:
+                # timeout check
+                if timeit.default_timer() >= deadline:
+                    self.solutionExists.value = -3.0  # TIMEOUT
+                    pool.terminate()
+                    pool.join()
+                    self.time = timeit.default_timer() - self.timer
+                    self.PrintSolution()
+                    self.UpdateJson()
+                    print()
+                    return
+
+                # check any finished tasks
+                progressed = False
+                for ar in pending[:]:
+                    if ar.ready():
+                        progressed = True
+                        try:
+                            solver_name, sol, model_or_error = ar.get()
+                        except MemoryError:
+                            solver_name, sol, model_or_error = ("<unknown>", None, "OUTOFMEMORY")
+                        except Exception as e:
+                            solver_name, sol, model_or_error = ("<unknown>", None, f"ERROR:{type(e).__name__}:{e}")
+
+                        # handle OUTOFMEMORY
+                        if model_or_error == 'OUTOFMEMORY':
+                            saw_outofmemory = True
+                            if not self.outofmemory:
+                                self.SwitchToSingleSolver(create_clauses_fn)
+                                pool.terminate()
+                                pool.join()
+                                self.solutionExists.value = -4.0
+                                return
+                            pending.remove(ar)
+                            continue
+
+                        # handle generic error
+                        if isinstance(model_or_error, str) and model_or_error.startswith('ERROR:'):
+                            saw_error = True
+                            pending.remove(ar)
+                            continue
+
+                        # solution found
+                        if sol is True and model_or_error:
+                            model = model_or_error
+                            count = min(len(model), self.n * self.t)
+                            self.solution = Array('i', [0] * (self.n * self.t))
+                            for i in range(count):
+                                try:
+                                    self.solution[i] = model[i]
+                                except Exception:
+                                    self.solution[i] = int(model[i]) if isinstance(model[i], int) else 0
+                            self.solutionExists.value = 1.0
+                            pool.terminate()
+                            pool.join()
+                            self.time = timeit.default_timer() - self.timer
+                            self.PrintSolution()
+                            self.UpdateJson()
+                            print()
+                            return
+
+                        # explicit UNSAT from this backend
+                        if sol is False:
+                            saw_unsat = True
+
+                        pending.remove(ar)
+
+                if not progressed:
+                    # avoid busy-wait if nothing ready yet
+                    time.sleep(0.02)
+
+        finally:
+            try:
+                pool.close()
+            except Exception:
+                pass
+            try:
+                pool.join()
+            except Exception:
+                pass
+
+        # no solver produced a model; decide outcome
+        if self.solutionExists.value != 1.0:
+            if saw_outofmemory:
                 self.solutionExists.value = -4.0
-                self.outofmemorySingleSolver = True
-            elif currentTime >= self.timeout:
-                self.TerminateProcesses()
-                self.solutionExists.value = -3.0
+            elif saw_unsat:
+                self.solutionExists.value = -1.0
+            elif saw_error:
+                self.solutionExists.value = -2.0
+            else:
+                self.solutionExists.value = -2.0  # UNKNOWN
 
-        self.TerminateProcesses()
         self.time = timeit.default_timer() - self.timer
         self.PrintSolution()
         self.UpdateJson()
         print()
+
 
     def FindOne(self, create_clauses_fn):
         self.solverNames = self.defaultSolverNames
@@ -475,6 +568,12 @@ class CFFSATSolver:
                 break
 
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 3)
-    # solver.FindOne()
-    solver.FindAll(solver.CreateClausesCyclicConstruction)
+    solver = CFFSATSolver(0, 2)
+    solver.timeout = 61 
+    try:
+        solver.FindAll(solver.CreateClausesDisjunctMatrices)
+        # solver.FindOne()
+    except KeyboardInterrupt:
+        print("\n[!] Interrupted by user, saving JSON before exit...")
+        solver.UpdateJson()
+        sys.exit(0)
