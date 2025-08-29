@@ -275,7 +275,7 @@ class CFFSATSolver:
                 if x > 0:
                     blocks[(x-1) % self.n].append(((x-1) // self.n) + 1)
 
-            print("Is cff:", is_cff(blocks, self.d))
+            # print("Is cff:", is_cff(blocks, self.d))
             # blocks = sorted(blocks, key=lambda x: sum(x))
             print('blocks:')
             for block in blocks:
@@ -583,8 +583,8 @@ class CFFSATSolver:
         print("Finding solution (single solver) for k:", self.k, 'd:', self.d, 't:', self.t, 'n:', self.n)
 
         self.timer = timeit.default_timer()
-        # if self.SolutionCached():
-        #     return
+        if self.SolutionCached():
+            return
 
         self.solutionExists.value = 0.0
         self.solution = Array('i', [0] * (self.n * self.t))
@@ -614,7 +614,7 @@ class CFFSATSolver:
             self.solutionExists.value = -3.0  # TIMEOUT
             self.time = timeit.default_timer() - self.timer
             self.PrintSolution()
-            # self.UpdateJson()
+            self.UpdateJson()
             print()
             return
         else:
@@ -626,7 +626,7 @@ class CFFSATSolver:
                 self.solutionExists.value = -2.0  # ERROR
                 self.time = timeit.default_timer() - self.timer
                 self.PrintSolution()
-                # self.UpdateJson()
+                self.UpdateJson()
                 print()
                 return
 
@@ -650,7 +650,7 @@ class CFFSATSolver:
 
         self.time = timeit.default_timer() - self.timer
         self.PrintSolution()
-        # self.UpdateJson()
+        self.UpdateJson()
         print()
 
 
@@ -686,5 +686,5 @@ if __name__ == '__main__':
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
-        # solver.UpdateJson()
+        solver.UpdateJson()
         sys.exit(0)
