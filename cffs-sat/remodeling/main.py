@@ -68,8 +68,8 @@ class CFFSATSolver:
         self.t = 3
         self.n = 3
         self.k = 0
-        self.filename = 'cffdata2.json'
-        self.CreateClauses = self.CreateClauses1
+        self.filename = 'cffdata0.json'
+        self.CreateClauses = self.CreateClauses0
         self.clauses = []
         self.timeout = 60
         self.timer = timeit.default_timer()
@@ -492,4 +492,4 @@ class CFFSATSolver:
 if __name__ == '__main__':
     solver = CFFSATSolver()
     # solver.FindOne(d=2, t=9, n=12, k=3)
-    solver.FindAll(d=4, n=3, t=3)
+    solver.FindAll(d=4, n=5, t=5)
