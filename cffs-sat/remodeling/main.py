@@ -573,7 +573,7 @@ class CFFSATSolver:
                 break
 
 if __name__ == '__main__':
-    solver = CFFSATSolver(0, 2, 23)
+    solver = CFFSATSolver(0, 2, 24)
     solver.timeout = 61 
     try:
         solver.FindAll(solver.CreateClausesDisjunctMatrices)
