@@ -683,7 +683,7 @@ class CFFSATSolver:
                         self.t += 1
                         self.n = self.t
 
-                    if self.t == 40:
+                    if self.t == 30:
                         break
 
 
