@@ -559,7 +559,7 @@ class CFFSATSolver:
         self.outofmemory = False
         self.outofmemorySingleSolver = False
 
-        intiial_t = self.t
+        initial_t = self.t
         initial_n = self.n
         for d in [3,4]:
             self.d = d
