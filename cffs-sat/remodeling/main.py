@@ -573,9 +573,8 @@ class CFFSATSolver:
                 else:
                     self.t += 1
                     self.n = self.t
-
-                break
                 if self.t == 30:
+                    break
 
     def FindOneSingleSolver(self, create_clauses_fn, solver_name=None, timeout_seconds=None):
         """
