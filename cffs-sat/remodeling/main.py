@@ -561,20 +561,22 @@ class CFFSATSolver:
 
         initial_t = self.t
         initial_n = self.n
-        for d in [3,4]:
+        for d in [2, 3]:
             self.d = d
-            self.t = initial_t
-            self.n = initial_n
-            while not self.outofmemorySingleSolver:
-                self.FindOneNoMemReset(create_clauses_fn)
+            for k in [1, 2, 3, 4, 5]
+                self.t = initial_t
+                self.k = k
+                self.n = initial_n
+                while not self.outofmemorySingleSolver:
+                    self.FindOneNoMemReset(create_clauses_fn)
 
-                if self.solutionExists.value == 1.0:
-                    self.n += 1
-                else:
-                    self.t += 1
-                    self.n = self.t
-                if self.t == 30:
-                    break
+                    if self.solutionExists.value == 1.0:
+                        self.n += 1
+                    else:
+                        self.t += 1
+                        self.n = self.t
+                    if self.t == 30:
+                        break
 
     def FindOneSingleSolver(self, create_clauses_fn, solver_name=None, timeout_seconds=None):
         """
@@ -696,7 +698,7 @@ if __name__ == '__main__':
     solver = CFFSATSolver(0, 2)
     solver.timeout = 60
     try:
-        solver.FindAllParalel(solver.CreateClausesCyclicConstruction)
+        solver.FindAllParalel(solver.CreateClausesWeightedK)
         # solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices, solver.defaultSolverNames)
         # solver.FindOne()
     except KeyboardInterrupt:
