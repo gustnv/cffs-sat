@@ -563,7 +563,7 @@ class CFFSATSolver:
         initial_n = self.n
         for d in [2, 3]:
             self.d = d
-            for k in [1, 2, 3, 4, 5]
+            for k in [1, 2, 3, 4, 5]:
                 self.t = initial_t
                 self.k = k
                 self.n = initial_n
