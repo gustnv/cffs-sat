@@ -668,38 +668,36 @@ class CFFSATSolver:
         self.outofmemory = False
         self.outofmemorySingleSolver = False
 
-        initial_k = self.k
-        # initial_d = self.d
         initial_t = self.t
         initial_n = self.n
-
-        for d in [3,4]:
-            for solver_name in solvers_name:
-                self.k = initial_k
-                self.d = d
+        for d in [2, 3]:
+            self.d = d
+            for k in [1, 2, 3, 4, 5]:
                 self.t = initial_t
+                self.k = k
                 self.n = initial_n
-                print("Running single-solver:", solver_name)
-                while not self.outofmemorySingleSolver:
-                    # pass self.timeout so the single-solver run uses the same timeout you configured
-                    self.FindOneSingleSolver(create_clauses_fn, solver_name, self.timeout)
+                for solver_name in solvers_name:
+                    print("Running single-solver:", solver_name)
+                    while not self.outofmemorySingleSolver:
+                        # pass self.timeout so the single-solver run uses the same timeout you configured
+                        self.FindOneSingleSolver(create_clauses_fn, solver_name, self.timeout)
 
-                    if self.solutionExists.value == 1.0:
-                        self.n += 1
-                    else:
-                        self.t += 1
-                        self.n = self.t
+                        if self.solutionExists.value == 1.0:
+                            self.n += 1
+                        else:
+                            self.t += 1
+                            self.n = self.t
 
-                    if self.t == 30:
-                        break
+                        if self.t == 30:
+                            break
 
 
 if __name__ == '__main__':
     solver = CFFSATSolver(0, 2)
-    solver.timeout = 60
+    solver.timeout = 600
     try:
-        solver.FindAllParalel(solver.CreateClausesWeightedK)
-        # solver.FindAllSingleSolver(solver.CreateClausesDisjunctMatrices, solver.defaultSolverNames)
+        # solver.FindAllParalel(solver.CreateClausesWeightedK)
+        solver.FindAllSingleSolver(solver.CreateClausesWeightedK, solver.defaultSolverNames)
         # solver.FindOne()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user, saving JSON before exit...")
