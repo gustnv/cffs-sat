@@ -148,7 +148,7 @@
   "n": 10,
   "clauses": 10899,
   "time": 60.3640871030002,
-  "solution": "TIMEOUT"
+  "solution": "UNSAT"
 }, {
   "k": 1,
   "d": 2,
@@ -174,7 +174,7 @@
   "n": 11,
   "clauses": 16455,
   "time": 60.387000197000816,
-  "solution": "TIMEOUT"
+  "solution": "UNSAT"
 }, {
   "k": 1,
   "d": 2,
@@ -661,5 +661,349 @@
   "n": 29,
   "clauses": 988233,
   "time": 60.04729165199387,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 30,
+  "n": 30,
+  "clauses": 1134510,
+  "time": 600.1640206599986,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 31,
+  "n": 31,
+  "clauses": 1296451,
+  "time": 600.1695467630052,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 32,
+  "n": 32,
+  "clauses": 1475136,
+  "time": 600.1826484610065,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 33,
+  "n": 33,
+  "clauses": 1671681,
+  "time": 600.1946550950088,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 34,
+  "n": 34,
+  "clauses": 1887238,
+  "time": 600.1983404250059,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 35,
+  "n": 35,
+  "clauses": 2122995,
+  "time": 600.2131389860006,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 36,
+  "n": 36,
+  "clauses": 2380176,
+  "time": 600.2223055909999,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 37,
+  "n": 37,
+  "clauses": 2660041,
+  "time": 600.2389151219977,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 38,
+  "n": 38,
+  "clauses": 2963886,
+  "time": 600.250042751999,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 39,
+  "n": 39,
+  "clauses": 3293043,
+  "time": 600.2284011699958,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 40,
+  "n": 40,
+  "clauses": 3648880,
+  "time": 600.2655608040077,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 41,
+  "n": 41,
+  "clauses": 4032801,
+  "time": 600.3014348010038,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 42,
+  "n": 42,
+  "clauses": 4446246,
+  "time": 600.2963036419969,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 43,
+  "n": 43,
+  "clauses": 4890691,
+  "time": 600.3434886549949,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 44,
+  "n": 44,
+  "clauses": 5367648,
+  "time": 600.3646007310017,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 45,
+  "n": 45,
+  "clauses": 5878665,
+  "time": 600.3903976560105,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 46,
+  "n": 46,
+  "clauses": 6425326,
+  "time": 600.4160367909935,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 47,
+  "n": 47,
+  "clauses": 7009251,
+  "time": 600.4447949519963,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 48,
+  "n": 48,
+  "clauses": 7632096,
+  "time": 600.4765424619982,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 49,
+  "n": 49,
+  "clauses": 8295553,
+  "time": 600.5082650190016,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 50,
+  "n": 50,
+  "clauses": 9001350,
+  "time": 600.4861972520011,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 51,
+  "n": 51,
+  "clauses": 9751251,
+  "time": 600.5709629440098,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 52,
+  "n": 52,
+  "clauses": 10547056,
+  "time": 600.6087178390007,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 53,
+  "n": 53,
+  "clauses": 11390601,
+  "time": 600.6534082110011,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 54,
+  "n": 54,
+  "clauses": 12283758,
+  "time": 600.7061852389888,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 55,
+  "n": 55,
+  "clauses": 13228435,
+  "time": 600.721335692011,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 56,
+  "n": 56,
+  "clauses": 14226576,
+  "time": 600.7843586570089,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 57,
+  "n": 57,
+  "clauses": 15280161,
+  "time": 600.8377502039948,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 58,
+  "n": 58,
+  "clauses": 16391206,
+  "time": 600.9040372760064,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 59,
+  "n": 59,
+  "clauses": 17561763,
+  "time": 600.9817428239912,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 60,
+  "n": 60,
+  "clauses": 18793920,
+  "time": 601.0204894969938,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 61,
+  "n": 61,
+  "clauses": 20089801,
+  "time": 601.091140288001,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 62,
+  "n": 62,
+  "clauses": 21451566,
+  "time": 601.3122503330087,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 63,
+  "n": 63,
+  "clauses": 22881411,
+  "time": 601.233826429001,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 64,
+  "n": 64,
+  "clauses": 24381568,
+  "time": 601.3190816650022,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 65,
+  "n": 65,
+  "clauses": 25954305,
+  "time": 601.4191355450021,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 66,
+  "n": 66,
+  "clauses": 27601926,
+  "time": 44480.62533938,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 67,
+  "n": 67,
+  "clauses": 29326771,
+  "time": 1092.4517580459942,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 68,
+  "n": 68,
+  "clauses": 31131216,
+  "time": 2733.5581623530015,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 69,
+  "n": 69,
+  "clauses": 33017673,
+  "time": 885.8338002740056,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 70,
+  "n": 70,
+  "clauses": 34988590,
+  "time": 3064.4922490160097,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 71,
+  "n": 71,
+  "clauses": 37046451,
+  "time": 1134.411710039014,
+  "solution": "TIMEOUT"
+}, {
+  "k": 1,
+  "d": 2,
+  "t": 72,
+  "n": 72,
+  "clauses": 39193776,
+  "time": 2533.834647001,
   "solution": "TIMEOUT"
 }]
