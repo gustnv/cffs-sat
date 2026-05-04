@@ -1,4 +1,5 @@
 from pysat.solvers import Solver
+import time
 
 
 class NQueensSatSolver:
@@ -123,10 +124,13 @@ class NQueensSatSolver:
     def solve(self, with_proof=True):
         """Solves the N-Queens problem using a SAT solver."""
 
+        start_time = time.time()
         self.create_clauses()
         if self.solver.solve():
-            print("[SAT] ")
-            self.print_model()
+            end_time = time.time()
+            print('N:', self.n, 'Time:', end_time - start_time)
+            # print("[SAT] ")
+            # self.print_model()
         else:
             print("[UNSAT]", end=" ")
             if with_proof:
@@ -147,5 +151,6 @@ class NQueensSatSolver:
 
 
 if __name__ == "__main__":
-    solver = NQueensSatSolver(12)
-    solver.solve()
+    for n in [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300]:
+        solver = NQueensSatSolver(n)
+        solver.solve()

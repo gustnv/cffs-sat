@@ -75,7 +75,7 @@ class CFFSATSolver:
 
             combinations = itertools.combinations(otherColumns, self.d)
 
-            # For each combination of columns.
+            # For each combination of columns. 123 4
             for coveringColumns in combinations:
                 # Y means that the m[row][column] is not covered for a given combination.
                 ys = []
